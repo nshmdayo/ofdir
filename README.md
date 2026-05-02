@@ -1,6 +1,6 @@
-# sd — smart cd
+# sd — smart directory
 
-A smarter `cd` command for bash and zsh. Jump to directories by fuzzy name, bookmark, or history — without typing full paths.
+A smarter directory command for bash and zsh. Jump to directories by fuzzy name, bookmark, or history — without typing full paths.
 
 ## Features
 
