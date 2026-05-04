@@ -45,7 +45,8 @@ func route(args []string, cfg *config.Config) error {
 	// --- no arguments: go home ---
 	if len(args) == 0 {
 		home, _ := os.UserHomeDir()
-		return enterDirectory(home)
+
+		return enterDirectory(home, cfg)
 	}
 
 	first := args[0]
@@ -182,8 +183,7 @@ func bookmarkJump(name string, cfg *config.Config) error {
 		output.Hintf("run 'cd -d %s' to remove this bookmark", name)
 		return exitCodeError(1)
 	}
-
-	return enterDirectory(bm.Path)
+	return enterDirectory(bm.Path, cfg)
 }
 
 func bookmarkAdd(name string, cfg *config.Config) error {
@@ -284,8 +284,7 @@ func historyJumpN(n int, cfg *config.Config) error {
 		output.Errorf("path no longer exists: %s", entry.Path)
 		return exitCodeError(1)
 	}
-
-	return enterDirectory(entry.Path)
+	return enterDirectory(entry.Path, cfg)
 }
 
 func historyInteractive(cfg *config.Config) error {
@@ -324,8 +323,7 @@ func historyInteractive(cfg *config.Config) error {
 		output.Errorf("path no longer exists: %s", chosen)
 		return exitCodeError(1)
 	}
-
-	return enterDirectory(chosen)
+	return enterDirectory(chosen, cfg)
 }
 
 func clearHistory(cfg *config.Config) error {
@@ -380,7 +378,7 @@ func stackPush(path string, cfg *config.Config) error {
 	if err := s.Save(sf); err != nil {
 		return exitError(fmt.Sprintf("failed to save stack: %v", err), 2)
 	}
-	return enterDirectory(resolved)
+	return enterDirectory(resolved, cfg)
 }
 
 func stackPop(cfg *config.Config) error {
@@ -402,7 +400,7 @@ func stackPop(cfg *config.Config) error {
 		output.Errorf("path no longer exists: %s", path)
 		return exitCodeError(1)
 	}
-	return enterDirectory(path)
+	return enterDirectory(path, cfg)
 }
 
 func stackList(cfg *config.Config) error {
@@ -450,7 +448,7 @@ func handleResults(results []fuzzy.SearchResult, cfg *config.Config) error {
 		return exitCodeError(1)
 	}
 	if len(results) == 1 {
-		return enterDirectory(results[0].Path)
+		return enterDirectory(results[0].Path, cfg)
 	}
 
 	candidates := make([]string, len(results))
@@ -478,25 +476,11 @@ func selectAndOutputPath(candidates []string, cfg *config.Config, prompt string)
 	if err != nil {
 		return err
 	}
-	return enterDirectory(chosen)
+	return enterDirectory(chosen, cfg)
 }
 
-func enterDirectory(path string) error {
-	// Validate path before using it
-	if path == "" {
-		return outputError("path is empty", "")
-	}
-
-	info, err := os.Stat(path)
-	if err != nil {
-		return outputError(fmt.Sprintf("cannot access path: %v", err), "")
-	}
-	if !info.IsDir() {
-		return outputError(fmt.Sprintf("path is not a directory: %s", path), "")
-	}
-
-	fi, err := os.Stdout.Stat()
-	if (err == nil && (fi.Mode()&os.ModeCharDevice) == 0) || os.Getenv("SD_PRINT_PATH") == "1" {
+func enterDirectory(path string, cfg *config.Config) error {
+	if os.Getenv("SD_PRINT_PATH") == "1" {
 		output.Path(path)
 		return nil
 	}
@@ -514,6 +498,7 @@ func enterDirectory(path string) error {
 	if err := cmd.Run(); err != nil {
 		return outputError(fmt.Sprintf("failed to start shell in %s: %v", path, err), "")
 	}
+	_ = recordHistory(path, cfg)
 	return nil
 }
 

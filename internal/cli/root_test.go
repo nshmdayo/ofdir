@@ -23,6 +23,7 @@ func runScd(t *testing.T, args ...string) (stdout string, exitCode int) {
 	t.Setenv("XDG_CONFIG_HOME", tmp)
 	t.Setenv("XDG_DATA_HOME", tmp)
 	t.Setenv("SD_PRINT_PATH", "1")
+	t.Setenv("SD_PRINT_PATH", "1")
 
 	// Capture stdout.
 	origStdout := os.Stdout
