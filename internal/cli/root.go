@@ -45,8 +45,7 @@ func route(args []string, cfg *config.Config) error {
 	// --- no arguments: go home ---
 	if len(args) == 0 {
 		home, _ := os.UserHomeDir()
-		output.Path(home)
-		return nil
+		return enterDirectory(home)
 	}
 
 	first := args[0]
@@ -183,8 +182,7 @@ func bookmarkJump(name string, cfg *config.Config) error {
 		output.Hintf("run 'cd -d %s' to remove this bookmark", name)
 		return exitCodeError(1)
 	}
-	output.Path(bm.Path)
-	return nil
+	return enterDirectory(bm.Path)
 }
 
 func bookmarkAdd(name string, cfg *config.Config) error {
@@ -285,8 +283,7 @@ func historyJumpN(n int, cfg *config.Config) error {
 		output.Errorf("path no longer exists: %s", entry.Path)
 		return exitCodeError(1)
 	}
-	output.Path(entry.Path)
-	return nil
+	return enterDirectory(entry.Path)
 }
 
 func historyInteractive(cfg *config.Config) error {
@@ -325,8 +322,7 @@ func historyInteractive(cfg *config.Config) error {
 		output.Errorf("path no longer exists: %s", chosen)
 		return exitCodeError(1)
 	}
-	output.Path(chosen)
-	return nil
+	return enterDirectory(chosen)
 }
 
 func clearHistory(cfg *config.Config) error {
@@ -381,8 +377,7 @@ func stackPush(path string, cfg *config.Config) error {
 	if err := s.Save(sf); err != nil {
 		return exitError(fmt.Sprintf("failed to save stack: %v", err), 2)
 	}
-	output.Path(resolved)
-	return nil
+	return enterDirectory(resolved)
 }
 
 func stackPop(cfg *config.Config) error {
@@ -404,8 +399,7 @@ func stackPop(cfg *config.Config) error {
 		output.Errorf("path no longer exists: %s", path)
 		return exitCodeError(1)
 	}
-	output.Path(path)
-	return nil
+	return enterDirectory(path)
 }
 
 func stackList(cfg *config.Config) error {
@@ -453,8 +447,7 @@ func handleResults(results []fuzzy.SearchResult, cfg *config.Config) error {
 		return exitCodeError(1)
 	}
 	if len(results) == 1 {
-		output.Path(results[0].Path)
-		return nil
+		return enterDirectory(results[0].Path)
 	}
 
 	candidates := make([]string, len(results))
@@ -482,7 +475,28 @@ func selectAndOutputPath(candidates []string, cfg *config.Config, prompt string)
 	if err != nil {
 		return err
 	}
-	output.Path(chosen)
+	return enterDirectory(chosen)
+}
+
+func enterDirectory(path string) error {
+	if os.Getenv("SD_PRINT_PATH") == "1" {
+		output.Path(path)
+		return nil
+	}
+
+	shell := os.Getenv("SHELL")
+	if shell == "" {
+		shell = "bash"
+	}
+
+	cmd := exec.Command(shell)
+	cmd.Dir = path
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return outputError(fmt.Sprintf("failed to start shell in %s: %v", path, err), "")
+	}
 	return nil
 }
 
@@ -508,27 +522,6 @@ func editConfig() error {
 	return openWithEditor(cfgFile)
 }
 
-func parseShellWords(input string) ([]string, error) {
-	var (
-		parts   []string
-		current strings.Builder
-		quote   rune
-		escape  bool
-	)
-
-	for _, r := range input {
-		switch {
-		case escape:
-			current.WriteRune(r)
-			escape = false
-		case r == '\\' && quote != '\'':
-			escape = true
-		case quote != 0:
-			if r == quote {
-				quote = 0
-			} else {
-				current.WriteRune(r)
-			}
 func parseShellWords(input string) ([]string, error) {
 	var (
 		parts   []string
@@ -572,13 +565,6 @@ func parseShellWords(input string) ([]string, error) {
 	if inToken {
 		parts = append(parts, current.String())
 	}
-	return parts, nil
-}
-		default:
-			current.WriteRune(r)
-		}
-	}
-
 	if escape {
 		return nil, fmt.Errorf("unterminated escape in editor command")
 	}
@@ -631,29 +617,28 @@ fuzzy_finder = "fzf"       # fzf | peco | internal
 // ---- help ----
 
 func printHelp() {
-	fmt.Fprint(os.Stderr, `sd - smart cd
+	fmt.Fprint(os.Stderr, `sd - smart directory CLI
 
 Usage:
-  cd [query]         Fuzzy search in current directory
-  cd @<name>         Jump to bookmark
-  cd -N              Jump to history entry N (e.g. cd -1)
-  cd -H              Browse history interactively
-  cd -a [name]       Add current directory as bookmark
-  cd -d <name>       Delete bookmark
-  cd -l              List bookmarks
-  cd -e              Edit bookmarks file
-  cd -g <query>      Global fuzzy search (from home)
-  cd -p <path>       Push path onto stack and jump to it
-  cd --              Pop from stack (go back)
-  cd -s              Show stack
-  cd --clear-history Delete all history
-  cd --config        Edit config file
-  cd --version       Show version
-  cd --help          Show this help
+  sd [query]         Fuzzy search in current directory and open a subshell there
+  sd @<name>         Jump to bookmark
+  sd -N              Jump to history entry N (e.g. sd -1)
+  sd -H              Browse history interactively
+  sd -a [name]       Add current directory as bookmark
+  sd -d <name>       Delete bookmark
+  sd -l              List bookmarks
+  sd -e              Edit bookmarks file
+  sd -g <query>      Global fuzzy search (from home)
+  sd -p <path>       Push path onto stack and jump to it
+  sd --              Pop from stack (go back)
+  sd -s              Show stack
+  sd --clear-history Delete all history
+  sd --config        Edit config file
+  sd --version       Show version
+  sd --help          Show this help
 
-Installation:
-  eval "$(sd --init bash)"   # add to ~/.bashrc
-  eval "$(sd --init zsh)"    # add to ~/.zshrc
+Environment:
+  SD_PRINT_PATH=1    Print resolved path only (legacy shell-wrapper mode)
 `)
 }
 
