@@ -50,20 +50,19 @@ func defaults() *Config {
 
 // ConfigDir returns the smart-cd config directory (XDG_CONFIG_HOME/smart-cd).
 func ConfigDir() string {
-	base := os.Getenv("XDG_CONFIG_HOME")
-	if base == "" {
-		home, _ := os.UserHomeDir()
-		base = filepath.Join(home, ".config")
-	}
-	return filepath.Join(base, "smart-cd")
+	return appDir("XDG_CONFIG_HOME", filepath.Join(".config"))
 }
 
 // DataDir returns the smart-cd data directory (XDG_DATA_HOME/smart-cd).
 func DataDir() string {
-	base := os.Getenv("XDG_DATA_HOME")
+	return appDir("XDG_DATA_HOME", filepath.Join(".local", "share"))
+}
+
+func appDir(envVar, fallback string) string {
+	base := os.Getenv(envVar)
 	if base == "" {
 		home, _ := os.UserHomeDir()
-		base = filepath.Join(home, ".local", "share")
+		base = filepath.Join(home, fallback)
 	}
 	return filepath.Join(base, "smart-cd")
 }

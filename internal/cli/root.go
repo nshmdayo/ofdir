@@ -257,21 +257,13 @@ func listBookmarkNames(cfg *config.Config) error {
 }
 
 func bookmarkEdit(cfg *config.Config) error {
-	editor := os.Getenv("EDITOR")
-	if editor == "" {
-		editor = "vi"
-	}
 	bmFile := config.BookmarksFile()
 	// Ensure file exists before editing.
 	if _, err := os.Stat(bmFile); errors.Is(err, os.ErrNotExist) {
 		store := &bookmark.Store{}
 		_ = store.Save(bmFile)
 	}
-	cmd := exec.Command(editor, bmFile)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stderr // output to tty (stderr side)
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
+	return openWithEditor(bmFile)
 }
 
 // ---- history operations ----
@@ -325,13 +317,9 @@ func historyInteractive(cfg *config.Config) error {
 		candidates[i] = e.Path
 	}
 
-	sel := selector.New(cfg)
-	chosen, err := sel.Select(candidates, "history> ")
+	chosen, err := selectPath(candidates, cfg, "history> ")
 	if err != nil {
-		if errors.Is(err, selector.ErrCancelled) {
-			return exitCodeError(130)
-		}
-		return outputError(err.Error(), "")
+		return err
 	}
 	if !pathutil.Exists(chosen) {
 		output.Errorf("path no longer exists: %s", chosen)
@@ -474,13 +462,25 @@ func handleResults(results []fuzzy.SearchResult, cfg *config.Config) error {
 		candidates[i] = r.Path
 	}
 
+	return selectAndOutputPath(candidates, cfg, "cd> ")
+}
+
+func selectPath(candidates []string, cfg *config.Config, prompt string) (string, error) {
 	sel := selector.New(cfg)
-	chosen, err := sel.Select(candidates, "cd> ")
+	chosen, err := sel.Select(candidates, prompt)
 	if err != nil {
 		if errors.Is(err, selector.ErrCancelled) {
-			return exitCodeError(130)
+			return "", exitCodeError(130)
 		}
-		return outputError(err.Error(), "")
+		return "", outputError(err.Error(), "")
+	}
+	return chosen, nil
+}
+
+func selectAndOutputPath(candidates []string, cfg *config.Config, prompt string) error {
+	chosen, err := selectPath(candidates, cfg, prompt)
+	if err != nil {
+		return err
 	}
 	output.Path(chosen)
 	return nil
@@ -499,17 +499,109 @@ func loadFrecencyMap(cfg *config.Config) map[string]float64 {
 // ---- config edit ----
 
 func editConfig() error {
-	editor := os.Getenv("EDITOR")
-	if editor == "" {
-		editor = "vi"
-	}
 	cfgFile := config.ConfigFile()
 	if _, err := os.Stat(cfgFile); errors.Is(err, os.ErrNotExist) {
 		if err := writeDefaultConfig(cfgFile); err != nil {
 			return outputError(fmt.Sprintf("failed to create config: %v", err), "")
 		}
 	}
-	cmd := exec.Command(editor, cfgFile)
+	return openWithEditor(cfgFile)
+}
+
+func parseShellWords(input string) ([]string, error) {
+	var (
+		parts   []string
+		current strings.Builder
+		quote   rune
+		escape  bool
+	)
+
+	for _, r := range input {
+		switch {
+		case escape:
+			current.WriteRune(r)
+			escape = false
+		case r == '\\' && quote != '\'':
+			escape = true
+		case quote != 0:
+			if r == quote {
+				quote = 0
+			} else {
+				current.WriteRune(r)
+			}
+func parseShellWords(input string) ([]string, error) {
+	var (
+		parts   []string
+		current strings.Builder
+		quote   rune
+		escape  bool
+		inToken bool
+	)
+
+	for _, r := range input {
+		switch {
+		case escape:
+			current.WriteRune(r)
+			escape = false
+			inToken = true
+		case r == '\\' && quote != '\'':
+			escape = true
+			inToken = true
+		case quote != 0:
+			if r == quote {
+				quote = 0
+			} else {
+				current.WriteRune(r)
+			}
+			inToken = true
+		case r == '\'' || r == '"':
+			quote = r
+			inToken = true
+		case r == ' ' || r == '\t' || r == '\n':
+			if inToken {
+				parts = append(parts, current.String())
+				current.Reset()
+				inToken = false
+			}
+		default:
+			current.WriteRune(r)
+			inToken = true
+		}
+	}
+
+	if inToken {
+		parts = append(parts, current.String())
+	}
+	return parts, nil
+}
+		default:
+			current.WriteRune(r)
+		}
+	}
+
+	if escape {
+		return nil, fmt.Errorf("unterminated escape in editor command")
+	}
+	if quote != 0 {
+		return nil, fmt.Errorf("unterminated quote in editor command")
+	}
+	if current.Len() > 0 {
+		parts = append(parts, current.String())
+	}
+	return parts, nil
+}
+
+func openWithEditor(path string) error {
+	editor := os.Getenv("EDITOR")
+	if editor == "" {
+		editor = "vi"
+	}
+	parts, err := parseShellWords(editor)
+	if err != nil || len(parts) == 0 || parts[0] == "" {
+		parts = []string{"vi"}
+	}
+	args := append(parts[1:], path)
+	cmd := exec.Command(parts[0], args...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stderr
 	cmd.Stderr = os.Stderr
