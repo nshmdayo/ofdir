@@ -257,21 +257,13 @@ func listBookmarkNames(cfg *config.Config) error {
 }
 
 func bookmarkEdit(cfg *config.Config) error {
-	editor := os.Getenv("EDITOR")
-	if editor == "" {
-		editor = "vi"
-	}
 	bmFile := config.BookmarksFile()
 	// Ensure file exists before editing.
 	if _, err := os.Stat(bmFile); errors.Is(err, os.ErrNotExist) {
 		store := &bookmark.Store{}
 		_ = store.Save(bmFile)
 	}
-	cmd := exec.Command(editor, bmFile)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stderr // output to tty (stderr side)
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
+	return openWithEditor(bmFile)
 }
 
 // ---- history operations ----
@@ -521,7 +513,12 @@ func openWithEditor(path string) error {
 	if editor == "" {
 		editor = "vi"
 	}
-	cmd := exec.Command(editor, path)
+	parts := strings.Fields(editor)
+	if len(parts) == 0 {
+		parts = []string{"vi"}
+	}
+	args := append(parts[1:], path)
+	cmd := exec.Command(parts[0], args...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stderr
 	cmd.Stderr = os.Stderr
