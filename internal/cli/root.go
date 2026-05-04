@@ -479,7 +479,8 @@ func selectAndOutputPath(candidates []string, cfg *config.Config, prompt string)
 }
 
 func enterDirectory(path string) error {
-	if os.Getenv("SD_PRINT_PATH") == "1" {
+	fi, err := os.Stdout.Stat()
+	if (err == nil && (fi.Mode()&os.ModeCharDevice) == 0) || os.Getenv("SD_PRINT_PATH") == "1" {
 		output.Path(path)
 		return nil
 	}
