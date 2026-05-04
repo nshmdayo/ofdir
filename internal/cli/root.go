@@ -182,6 +182,7 @@ func bookmarkJump(name string, cfg *config.Config) error {
 		output.Hintf("run 'cd -d %s' to remove this bookmark", name)
 		return exitCodeError(1)
 	}
+
 	return enterDirectory(bm.Path)
 }
 
@@ -283,6 +284,7 @@ func historyJumpN(n int, cfg *config.Config) error {
 		output.Errorf("path no longer exists: %s", entry.Path)
 		return exitCodeError(1)
 	}
+
 	return enterDirectory(entry.Path)
 }
 
@@ -322,6 +324,7 @@ func historyInteractive(cfg *config.Config) error {
 		output.Errorf("path no longer exists: %s", chosen)
 		return exitCodeError(1)
 	}
+
 	return enterDirectory(chosen)
 }
 
