@@ -529,13 +529,51 @@ func parseShellWords(input string) ([]string, error) {
 			} else {
 				current.WriteRune(r)
 			}
+func parseShellWords(input string) ([]string, error) {
+	var (
+		parts   []string
+		current strings.Builder
+		quote   rune
+		escape  bool
+		inToken bool
+	)
+
+	for _, r := range input {
+		switch {
+		case escape:
+			current.WriteRune(r)
+			escape = false
+			inToken = true
+		case r == '\\' && quote != '\'':
+			escape = true
+			inToken = true
+		case quote != 0:
+			if r == quote {
+				quote = 0
+			} else {
+				current.WriteRune(r)
+			}
+			inToken = true
 		case r == '\'' || r == '"':
 			quote = r
+			inToken = true
 		case r == ' ' || r == '\t' || r == '\n':
-			if current.Len() > 0 {
+			if inToken {
 				parts = append(parts, current.String())
 				current.Reset()
+				inToken = false
 			}
+		default:
+			current.WriteRune(r)
+			inToken = true
+		}
+	}
+
+	if inToken {
+		parts = append(parts, current.String())
+	}
+	return parts, nil
+}
 		default:
 			current.WriteRune(r)
 		}
