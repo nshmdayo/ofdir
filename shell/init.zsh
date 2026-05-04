@@ -10,7 +10,7 @@ function cd() {
 
     # Capture sd output; UI and errors go to the terminal via /dev/tty
     local target
-    target=$(sd "$@" 2>/dev/tty)
+    target=$(SD_PRINT_PATH=1 sd "$@" 2>/dev/tty)
     local exit_code=$?
 
     if [ $exit_code -eq 0 ] && [ -n "$target" ]; then

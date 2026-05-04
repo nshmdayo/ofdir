@@ -622,7 +622,7 @@ func printHelp() {
 	fmt.Fprint(os.Stderr, `sd - smart directory CLI
 
 Usage:
-  sd [query]         Fuzzy search in current directory and open a subshell there
+  sd [query]         Fuzzy search in current directory and resolve destination path
   sd @<name>         Jump to bookmark
   sd -N              Jump to history entry N (e.g. sd -1)
   sd -H              Browse history interactively
@@ -640,7 +640,7 @@ Usage:
   sd --help          Show this help
 
 Environment:
-  SD_PRINT_PATH=1    Print resolved path only (legacy shell-wrapper mode)
+  SD_PRINT_PATH=1    Print resolved path only (for shell function integration)
 `)
 }
 
