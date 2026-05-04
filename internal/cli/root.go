@@ -479,6 +479,19 @@ func selectAndOutputPath(candidates []string, cfg *config.Config, prompt string)
 }
 
 func enterDirectory(path string) error {
+	// Validate path before using it
+	if path == "" {
+		return outputError("path is empty", "")
+	}
+
+	info, err := os.Stat(path)
+	if err != nil {
+		return outputError(fmt.Sprintf("cannot access path: %v", err), "")
+	}
+	if !info.IsDir() {
+		return outputError(fmt.Sprintf("path is not a directory: %s", path), "")
+	}
+
 	fi, err := os.Stdout.Stat()
 	if (err == nil && (fi.Mode()&os.ModeCharDevice) == 0) || os.Getenv("SD_PRINT_PATH") == "1" {
 		output.Path(path)
