@@ -45,6 +45,7 @@ func route(args []string, cfg *config.Config) error {
 	// --- no arguments: go home ---
 	if len(args) == 0 {
 		home, _ := os.UserHomeDir()
+
 		return enterDirectory(home, cfg)
 	}
 
