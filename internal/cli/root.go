@@ -508,13 +508,58 @@ func editConfig() error {
 	return openWithEditor(cfgFile)
 }
 
+func parseShellWords(input string) ([]string, error) {
+	var (
+		parts   []string
+		current strings.Builder
+		quote   rune
+		escape  bool
+	)
+
+	for _, r := range input {
+		switch {
+		case escape:
+			current.WriteRune(r)
+			escape = false
+		case r == '\\' && quote != '\'':
+			escape = true
+		case quote != 0:
+			if r == quote {
+				quote = 0
+			} else {
+				current.WriteRune(r)
+			}
+		case r == '\'' || r == '"':
+			quote = r
+		case r == ' ' || r == '\t' || r == '\n':
+			if current.Len() > 0 {
+				parts = append(parts, current.String())
+				current.Reset()
+			}
+		default:
+			current.WriteRune(r)
+		}
+	}
+
+	if escape {
+		return nil, fmt.Errorf("unterminated escape in editor command")
+	}
+	if quote != 0 {
+		return nil, fmt.Errorf("unterminated quote in editor command")
+	}
+	if current.Len() > 0 {
+		parts = append(parts, current.String())
+	}
+	return parts, nil
+}
+
 func openWithEditor(path string) error {
 	editor := os.Getenv("EDITOR")
 	if editor == "" {
 		editor = "vi"
 	}
-	parts := strings.Fields(editor)
-	if len(parts) == 0 {
+	parts, err := parseShellWords(editor)
+	if err != nil || len(parts) == 0 || parts[0] == "" {
 		parts = []string{"vi"}
 	}
 	args := append(parts[1:], path)
