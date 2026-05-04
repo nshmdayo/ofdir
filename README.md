@@ -87,7 +87,11 @@ sd --help        # show help
 
 ## Configuration
 
-Config file: `~/.config/smart-cd/config.toml` (created on first `cd --config`).
+Config file: `~/.config/smart-cd/config.toml` (created on first `sd --config`).
+
+```bash
+sd --config      # create (if needed) and edit config file in $EDITOR
+```
 
 ```toml
 [search]
