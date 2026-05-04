@@ -325,13 +325,9 @@ func historyInteractive(cfg *config.Config) error {
 		candidates[i] = e.Path
 	}
 
-	sel := selector.New(cfg)
-	chosen, err := sel.Select(candidates, "history> ")
+	chosen, err := selectPath(candidates, cfg, "history> ")
 	if err != nil {
-		if errors.Is(err, selector.ErrCancelled) {
-			return exitCodeError(130)
-		}
-		return outputError(err.Error(), "")
+		return err
 	}
 	if !pathutil.Exists(chosen) {
 		output.Errorf("path no longer exists: %s", chosen)
@@ -474,13 +470,25 @@ func handleResults(results []fuzzy.SearchResult, cfg *config.Config) error {
 		candidates[i] = r.Path
 	}
 
+	return selectAndOutputPath(candidates, cfg, "cd> ")
+}
+
+func selectPath(candidates []string, cfg *config.Config, prompt string) (string, error) {
 	sel := selector.New(cfg)
-	chosen, err := sel.Select(candidates, "cd> ")
+	chosen, err := sel.Select(candidates, prompt)
 	if err != nil {
 		if errors.Is(err, selector.ErrCancelled) {
-			return exitCodeError(130)
+			return "", exitCodeError(130)
 		}
-		return outputError(err.Error(), "")
+		return "", outputError(err.Error(), "")
+	}
+	return chosen, nil
+}
+
+func selectAndOutputPath(candidates []string, cfg *config.Config, prompt string) error {
+	chosen, err := selectPath(candidates, cfg, prompt)
+	if err != nil {
+		return err
 	}
 	output.Path(chosen)
 	return nil
@@ -499,17 +507,21 @@ func loadFrecencyMap(cfg *config.Config) map[string]float64 {
 // ---- config edit ----
 
 func editConfig() error {
-	editor := os.Getenv("EDITOR")
-	if editor == "" {
-		editor = "vi"
-	}
 	cfgFile := config.ConfigFile()
 	if _, err := os.Stat(cfgFile); errors.Is(err, os.ErrNotExist) {
 		if err := writeDefaultConfig(cfgFile); err != nil {
 			return outputError(fmt.Sprintf("failed to create config: %v", err), "")
 		}
 	}
-	cmd := exec.Command(editor, cfgFile)
+	return openWithEditor(cfgFile)
+}
+
+func openWithEditor(path string) error {
+	editor := os.Getenv("EDITOR")
+	if editor == "" {
+		editor = "vi"
+	}
+	cmd := exec.Command(editor, path)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stderr
 	cmd.Stderr = os.Stderr
