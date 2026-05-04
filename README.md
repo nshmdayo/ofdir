@@ -1,6 +1,6 @@
 # sd — smart directory
 
-A smarter directory command for bash and zsh. Jump to directories by fuzzy name, bookmark, or history — without typing full paths.
+A standalone smart directory CLI. Jump to directories by fuzzy name, bookmark, or history — without typing full paths.
 
 ## Features
 
@@ -27,31 +27,15 @@ cd sd
 make build          # produces bin/sd
 ```
 
-Move `bin/sd` somewhere on your `$PATH`, then add the shell integration to your RC file.
-
-### Shell integration
-
-**zsh** — add to `~/.zshrc`:
-
-```zsh
-eval "$(sd --init zsh)"
-```
-
-**bash** — add to `~/.bashrc`:
-
-```bash
-eval "$(sd --init bash)"
-```
-
-Restart your shell or `source ~/.zshrc` / `source ~/.bashrc`.
+Move `bin/sd` somewhere on your `$PATH`.
 
 ## Usage
 
 ### Fuzzy jump
 
 ```bash
-cd proj          # jumps to the best-matching subdirectory named like "proj"
-cd -g conf       # global search: searches from home directory
+sd proj          # opens a subshell in the best-matching directory
+sd -g conf       # global search: searches from home directory
 ```
 
 Candidate scoring is based on name similarity, directory depth, and visit frecency.
@@ -60,26 +44,26 @@ If multiple candidates match, an interactive selector (fzf or built-in) opens.
 ### Bookmarks
 
 ```bash
-cd -a myproj     # bookmark current directory as "myproj"
-cd @myproj       # jump to bookmark "myproj"
-cd -l            # list all bookmarks
-cd -d myproj     # delete bookmark "myproj"
-cd -e            # edit bookmarks file in $EDITOR
+sd -a myproj     # bookmark current directory as "myproj"
+sd @myproj       # jump to bookmark "myproj"
+sd -l            # list all bookmarks
+sd -d myproj     # delete bookmark "myproj"
+sd -e            # edit bookmarks file in $EDITOR
 ```
 
 Tab completion works for bookmark names:
 
 ```bash
-cd @my<TAB>      # completes to @myproj
+sd @myproj
 ```
 
 ### History
 
 ```bash
-cd -H            # interactive history browser (frecency order)
-cd -1            # jump to most recent history entry
-cd -3            # jump to third history entry
-cd --clear-history  # delete all history
+sd -H            # interactive history browser (frecency order)
+sd -1            # jump to most recent history entry
+sd -3            # jump to third history entry
+sd --clear-history  # delete all history
 ```
 
 History is recorded automatically after every successful `cd`.
@@ -87,18 +71,18 @@ History is recorded automatically after every successful `cd`.
 ### Stack (pushd/popd)
 
 ```bash
-cd -p /some/path # push path onto stack and jump to it
-cd --            # pop: return to previous stack entry
-cd -s            # show the current stack
+sd -p /some/path # push path onto stack and jump to it
+sd --            # pop: return to previous stack entry
+sd -s            # show the current stack
 ```
 
 ### Other
 
 ```bash
-cd               # go home (same as builtin cd)
-cd --config      # edit config file in $EDITOR
-cd --version     # print version
-cd --help        # show help
+sd               # go home (opens a shell in $HOME)
+sd --config      # edit config file in $EDITOR
+sd --version     # print version
+sd --help        # show help
 ```
 
 ## Configuration
@@ -140,17 +124,9 @@ XDG base directories (`XDG_CONFIG_HOME`, `XDG_DATA_HOME`) are respected.
 
 ## How it works
 
-`cd` is a shell builtin, so an external process cannot change the working directory directly.
-`sd` handles all the logic and prints the resolved path to stdout. A thin shell wrapper captures it and calls `builtin cd`:
+`sd` resolves a destination directory and opens a new interactive shell with that directory as its working directory.
 
-```
-shell wrapper (cd function)
-  └─ target=$(sd "$@" 2>/dev/tty)   ← captures path from stdout
-     builtin cd "$target"
-     sd --record "$target" &        ← record history asynchronously
-```
-
-UI output (fzf, error messages) goes to stderr so it reaches the terminal without polluting the captured path.
+For legacy shell-wrapper integration, set `SD_PRINT_PATH=1` to make `sd` print the resolved path to stdout instead.
 
 ## Development
 
