@@ -3,7 +3,7 @@ package cli
 import (
 	"fmt"
 
-	"github.com/nshmdayo/sd/shell"
+	"github.com/nshmdayo/ofdir/shell"
 )
 
 // PrintInitScript writes the shell integration script to stdout.

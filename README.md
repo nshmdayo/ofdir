@@ -1,4 +1,4 @@
-# sd — smart directory
+# ofdir — smart directory
 
 A standalone smart directory CLI. Jump to directories by fuzzy name, bookmark, or history — without typing full paths.
 
@@ -16,26 +16,26 @@ A standalone smart directory CLI. Jump to directories by fuzzy name, bookmark, o
 ### Build from source
 
 ```bash
-go install github.com/nshmdayo/sd/cmd/sd@latest
+go install github.com/nshmdayo/ofdir/cmd/ofdir@latest
 ```
 
 Or clone and build:
 
 ```bash
-git clone https://github.com/nshmdayo/sd
-cd sd
-make build          # produces bin/sd
+git clone https://github.com/nshmdayo/ofdir
+cd ofdir
+make build          # produces bin/ofdir
 ```
 
-Move `bin/sd` somewhere on your `$PATH`.
+Move `bin/ofdir` somewhere on your `$PATH`.
 
 ## Usage
 
 ### Fuzzy jump
 
 ```bash
-sd proj          # jump to best-matching directory (via shell function)
-sd -g conf       # global search: searches from home directory
+ofdir proj          # jump to best-matching directory (via shell function)
+ofdir -g conf       # global search: searches from home directory
 ```
 
 Candidate scoring is based on name similarity, directory depth, and visit frecency.
@@ -44,26 +44,26 @@ If multiple candidates match, an interactive selector (fzf or built-in) opens.
 ### Bookmarks
 
 ```bash
-sd -a myproj     # bookmark current directory as "myproj"
-sd @myproj       # jump to bookmark "myproj"
-sd -l            # list all bookmarks
-sd -d myproj     # delete bookmark "myproj"
-sd -e            # edit bookmarks file in $EDITOR
+ofdir -a myproj     # bookmark current directory as "myproj"
+ofdir @myproj       # jump to bookmark "myproj"
+ofdir -l            # list all bookmarks
+ofdir -d myproj     # delete bookmark "myproj"
+ofdir -e            # edit bookmarks file in $EDITOR
 ```
 
 Tab completion works for bookmark names:
 
 ```bash
-sd @myproj
+ofdir @myproj
 ```
 
 ### History
 
 ```bash
-sd -H            # interactive history browser (frecency order)
-sd -1            # jump to most recent history entry
-sd -3            # jump to third history entry
-sd --clear-history  # delete all history
+ofdir -H            # interactive history browser (frecency order)
+ofdir -1            # jump to most recent history entry
+ofdir -3            # jump to third history entry
+ofdir --clear-history  # delete all history
 ```
 
 History is recorded automatically after every successful `cd`.
@@ -71,26 +71,26 @@ History is recorded automatically after every successful `cd`.
 ### Stack (pushd/popd)
 
 ```bash
-sd -p /some/path # push path onto stack and jump to it
-sd --            # pop: return to previous stack entry
-sd -s            # show the current stack
+ofdir -p /some/path # push path onto stack and jump to it
+ofdir --            # pop: return to previous stack entry
+ofdir -s            # show the current stack
 ```
 
 ### Other
 
 ```bash
-sd               # go home
-sd --config      # edit config file in $EDITOR
-sd --version     # print version
-sd --help        # show help
+ofdir               # go home
+ofdir --config      # edit config file in $EDITOR
+ofdir --version     # print version
+ofdir --help        # show help
 ```
 
 ## Configuration
 
-Config file: `~/.config/smart-cd/config.toml` (created on first `sd --config`).
+Config file: `~/.config/ofdir/config.toml` (created on first `ofdir --config`).
 
 ```bash
-sd --config      # create (if needed) and edit config file in $EDITOR
+ofdir --config      # create (if needed) and edit config file in $EDITOR
 ```
 
 ```toml
@@ -112,32 +112,32 @@ Environment variable overrides:
 
 | Variable            | Effect                        |
 |---------------------|-------------------------------|
-| `SMART_CD_MAX_DEPTH`| Override `search.max_depth`   |
+| `OFDIR_MAX_DEPTH`| Override `search.max_depth`   |
 | `NO_COLOR`          | Disable color output          |
 
 ## Data files
 
 | File                                         | Contents          |
 |----------------------------------------------|-------------------|
-| `~/.config/smart-cd/config.toml`             | Configuration     |
-| `~/.config/smart-cd/bookmarks.json`          | Bookmarks         |
-| `~/.local/share/smart-cd/history.db`         | Visit history (SQLite) |
-| `~/.local/share/smart-cd/stack`              | Directory stack   |
+| `~/.config/ofdir/config.toml`             | Configuration     |
+| `~/.config/ofdir/bookmarks.json`          | Bookmarks         |
+| `~/.local/share/ofdir/history.db`         | Visit history (SQLite) |
+| `~/.local/share/ofdir/stack`              | Directory stack   |
 
 XDG base directories (`XDG_CONFIG_HOME`, `XDG_DATA_HOME`) are respected.
 
 ## How it works
 
-`sd` resolves a destination directory and prints it to stdout.
+`ofdir` resolves a destination directory and prints it to stdout.
 
-Use the provided shell initialization (`sd --init bash` or `sd --init zsh`) so the shell function can `cd` in the current shell.
+Use the provided shell initialization (`ofdir --init bash` or `ofdir --init zsh`) so the shell function can `cd` in the current shell.
 
 ## Development
 
 ```bash
 make test    # run all tests with race detector
 make bench   # run benchmarks
-make build   # build bin/sd
+make build   # build bin/ofdir
 ```
 
 ## Requirements

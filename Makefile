@@ -17,8 +17,8 @@ else
 RUNNER =
 endif
 
-build: ## Build the sd binary
-	$(RUNNER) go build -o bin/sd ./cmd/sd
+build: ## Build the ofdir binary
+	$(RUNNER) go build -o bin/ofdir ./cmd/ofdir
 
 test: ## Run tests
 	$(RUNNER) go test ./... -race -count=1

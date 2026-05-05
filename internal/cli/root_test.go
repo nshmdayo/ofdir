@@ -9,8 +9,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/nshmdayo/sd/internal/cli"
-	"github.com/nshmdayo/sd/internal/config"
+	"github.com/nshmdayo/ofdir/internal/cli"
+	"github.com/nshmdayo/ofdir/internal/config"
 )
 
 // runScd sets up isolated XDG dirs, captures stdout, calls Execute with the
@@ -22,8 +22,8 @@ func runScd(t *testing.T, args ...string) (stdout string, exitCode int) {
 	tmp := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tmp)
 	t.Setenv("XDG_DATA_HOME", tmp)
-	t.Setenv("SD_PRINT_PATH", "1")
-	t.Setenv("SD_PRINT_PATH", "1")
+	t.Setenv("OFDIR_PRINT_PATH", "1")
+	t.Setenv("OFDIR_PRINT_PATH", "1")
 
 	// Capture stdout.
 	origStdout := os.Stdout
@@ -42,7 +42,7 @@ func runScd(t *testing.T, args ...string) (stdout string, exitCode int) {
 
 	// Inject args.
 	origArgs := os.Args
-	os.Args = append([]string{"sd"}, args...)
+	os.Args = append([]string{"ofdir"}, args...)
 	t.Cleanup(func() { os.Args = origArgs })
 
 	err := cli.Execute()
@@ -88,8 +88,8 @@ func TestInitBash(t *testing.T) {
 	if code != 0 {
 		t.Fatalf("exit code = %d, want 0", code)
 	}
-	if !strings.Contains(stdout, "function sd()") {
-		t.Error("bash init script missing 'function sd()'")
+	if !strings.Contains(stdout, "function ofdir()") {
+		t.Error("bash init script missing 'function ofdir()'")
 	}
 }
 
@@ -98,8 +98,8 @@ func TestInitZsh(t *testing.T) {
 	if code != 0 {
 		t.Fatalf("exit code = %d, want 0", code)
 	}
-	if !strings.Contains(stdout, "function sd()") {
-		t.Error("zsh init script missing 'function sd()'")
+	if !strings.Contains(stdout, "function ofdir()") {
+		t.Error("zsh init script missing 'function ofdir()'")
 	}
 }
 
@@ -114,7 +114,7 @@ func TestBookmarkAddListDelete(t *testing.T) {
 	tmp := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tmp)
 	t.Setenv("XDG_DATA_HOME", tmp)
-	t.Setenv("SD_PRINT_PATH", "1")
+	t.Setenv("OFDIR_PRINT_PATH", "1")
 	origStderr := os.Stderr
 	os.Stderr, _ = os.Open(os.DevNull)
 	t.Cleanup(func() { os.Stderr = origStderr })
@@ -128,11 +128,11 @@ func TestBookmarkAddListDelete(t *testing.T) {
 	origArgs := os.Args
 	t.Cleanup(func() { os.Args = origArgs })
 
-	os.Args = []string{"sd", "-a", "testbm"}
+	os.Args = []string{"ofdir", "-a", "testbm"}
 	_ = cli.Execute()
 
 	// -l: list should contain our bookmark
-	os.Args = []string{"sd", "--list-bookmarks"}
+	os.Args = []string{"ofdir", "--list-bookmarks"}
 	origStdout := os.Stdout
 	r, w, _ := os.Pipe()
 	os.Stdout = w
@@ -147,7 +147,7 @@ func TestBookmarkAddListDelete(t *testing.T) {
 	}
 
 	// @testbm: jump should return targetDir
-	os.Args = []string{"sd", "@testbm"}
+	os.Args = []string{"ofdir", "@testbm"}
 	r, w, _ = os.Pipe()
 	os.Stdout = w
 	err := cli.Execute()
@@ -168,11 +168,11 @@ func TestBookmarkAddListDelete(t *testing.T) {
 	}
 
 	// -d: delete
-	os.Args = []string{"sd", "-d", "testbm"}
+	os.Args = []string{"ofdir", "-d", "testbm"}
 	_ = cli.Execute()
 
 	// After delete, jump should fail
-	os.Args = []string{"sd", "@testbm"}
+	os.Args = []string{"ofdir", "@testbm"}
 	r, w, _ = os.Pipe()
 	os.Stdout = w
 	err = cli.Execute()
@@ -194,7 +194,7 @@ func TestBookmarkJump_PathGone(t *testing.T) {
 	tmp := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tmp)
 	t.Setenv("XDG_DATA_HOME", tmp)
-	t.Setenv("SD_PRINT_PATH", "1")
+	t.Setenv("OFDIR_PRINT_PATH", "1")
 	origStderr := os.Stderr
 	os.Stderr, _ = os.Open(os.DevNull)
 	t.Cleanup(func() { os.Stderr = origStderr })
@@ -211,7 +211,7 @@ func TestBookmarkJump_PathGone(t *testing.T) {
 
 	origArgs := os.Args
 	t.Cleanup(func() { os.Args = origArgs })
-	os.Args = []string{"sd", "@gone"}
+	os.Args = []string{"ofdir", "@gone"}
 	err := cli.Execute()
 	if err == nil || cli.ExitCode(err) == 0 {
 		t.Error("expected non-zero exit when bookmark path no longer exists")
@@ -237,7 +237,7 @@ func TestStackPushPop(t *testing.T) {
 	tmp := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tmp)
 	t.Setenv("XDG_DATA_HOME", tmp)
-	t.Setenv("SD_PRINT_PATH", "1")
+	t.Setenv("OFDIR_PRINT_PATH", "1")
 	origStderr := os.Stderr
 	os.Stderr, _ = os.Open(os.DevNull)
 	t.Cleanup(func() { os.Stderr = origStderr })
@@ -249,7 +249,7 @@ func TestStackPushPop(t *testing.T) {
 	origStdout := os.Stdout
 
 	// Push
-	os.Args = []string{"sd", "-p", dir}
+	os.Args = []string{"ofdir", "-p", dir}
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 	if err := cli.Execute(); err != nil {
@@ -264,7 +264,7 @@ func TestStackPushPop(t *testing.T) {
 	}
 
 	// Pop
-	os.Args = []string{"sd", "--"}
+	os.Args = []string{"ofdir", "--"}
 	r, w, _ = os.Pipe()
 	os.Stdout = w
 	if err := cli.Execute(); err != nil {
@@ -290,7 +290,7 @@ func TestFuzzySearch_Found(t *testing.T) {
 	tmp := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tmp)
 	t.Setenv("XDG_DATA_HOME", tmp)
-	t.Setenv("SD_PRINT_PATH", "1")
+	t.Setenv("OFDIR_PRINT_PATH", "1")
 
 	// Create a subdirectory to find.
 	searchRoot := t.TempDir()
@@ -309,7 +309,7 @@ func TestFuzzySearch_Found(t *testing.T) {
 	os.Stderr, _ = os.Open(os.DevNull)
 	t.Cleanup(func() { os.Stderr = origStderr })
 
-	os.Args = []string{"sd", "myproject"}
+	os.Args = []string{"ofdir", "myproject"}
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 	err := cli.Execute()

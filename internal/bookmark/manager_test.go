@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/nshmdayo/sd/internal/bookmark"
+	"github.com/nshmdayo/ofdir/internal/bookmark"
 )
 
 func TestAddFindDelete(t *testing.T) {

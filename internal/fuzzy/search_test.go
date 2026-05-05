@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/nshmdayo/sd/internal/config"
-	"github.com/nshmdayo/sd/internal/fuzzy"
+	"github.com/nshmdayo/ofdir/internal/config"
+	"github.com/nshmdayo/ofdir/internal/fuzzy"
 )
 
 func TestSearch(t *testing.T) {
