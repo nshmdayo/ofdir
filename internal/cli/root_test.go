@@ -266,6 +266,49 @@ func TestSetFuzzyFinder_Invalid(t *testing.T) {
 	}
 }
 
+func TestSetFuzzyFinder_PreservesDefaultsForPartialConfig(t *testing.T) {
+	tmp := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", tmp)
+	t.Setenv("XDG_DATA_HOME", tmp)
+	t.Setenv("OFDIR_PRINT_PATH", "1")
+	origStderr := os.Stderr
+	os.Stderr, _ = os.Open(os.DevNull)
+	t.Cleanup(func() { os.Stderr = origStderr })
+
+	cfgDir := filepath.Join(tmp, "ofdir")
+	if err := os.MkdirAll(cfgDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	content := `
+[ui]
+color = true
+`
+	if err := os.WriteFile(filepath.Join(cfgDir, "config.toml"), []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	origArgs := os.Args
+	t.Cleanup(func() { os.Args = origArgs })
+	os.Args = []string{"ofdir", "--set-fuzzy-finder", "fzf"}
+	if err := cli.Execute(); err != nil {
+		t.Fatalf("--set-fuzzy-finder failed: %v", err)
+	}
+
+	cfg, err := config.Load()
+	if err != nil {
+		t.Fatalf("config.Load() failed: %v", err)
+	}
+	if cfg.Search.MaxDepth != 5 {
+		t.Fatalf("MaxDepth = %d, want 5", cfg.Search.MaxDepth)
+	}
+	if cfg.History.MaxEntries != 1000 {
+		t.Fatalf("MaxEntries = %d, want 1000", cfg.History.MaxEntries)
+	}
+	if cfg.History.Sort != "frecency" {
+		t.Fatalf("Sort = %q, want frecency", cfg.History.Sort)
+	}
+}
+
 func TestStackPushPop(t *testing.T) {
 	tmp := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tmp)

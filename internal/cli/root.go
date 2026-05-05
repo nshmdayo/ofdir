@@ -529,8 +529,8 @@ func setFuzzyFinder(name string) error {
 		}
 	}
 
-	cfg := config.Config{}
-	if _, err := toml.DecodeFile(cfgFile, &cfg); err != nil {
+	cfg := config.Defaults()
+	if _, err := toml.DecodeFile(cfgFile, cfg); err != nil {
 		return outputError(fmt.Sprintf("failed to read config: %v", err), "")
 	}
 	cfg.UI.FuzzyFinder = name

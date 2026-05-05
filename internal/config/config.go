@@ -48,6 +48,11 @@ func defaults() *Config {
 	}
 }
 
+// Defaults returns a copy of the default configuration values.
+func Defaults() *Config {
+	return defaults()
+}
+
 // ConfigDir returns the ofdir config directory (XDG_CONFIG_HOME/ofdir).
 func ConfigDir() string {
 	return appDir("XDG_CONFIG_HOME", filepath.Join(".config"))
