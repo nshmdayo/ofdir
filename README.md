@@ -34,7 +34,7 @@ Move `bin/sd` somewhere on your `$PATH`.
 ### Fuzzy jump
 
 ```bash
-sd proj          # opens a subshell in the best-matching directory
+sd proj          # jump to best-matching directory (via shell function)
 sd -g conf       # global search: searches from home directory
 ```
 
@@ -79,7 +79,7 @@ sd -s            # show the current stack
 ### Other
 
 ```bash
-sd               # go home (opens a shell in $HOME)
+sd               # go home
 sd --config      # edit config file in $EDITOR
 sd --version     # print version
 sd --help        # show help
@@ -128,9 +128,9 @@ XDG base directories (`XDG_CONFIG_HOME`, `XDG_DATA_HOME`) are respected.
 
 ## How it works
 
-`sd` resolves a destination directory and opens a new interactive shell with that directory as its working directory.
+`sd` resolves a destination directory and prints it to stdout.
 
-For legacy shell-wrapper integration, set `SD_PRINT_PATH=1` to make `sd` print the resolved path to stdout instead.
+Use the provided shell initialization (`sd --init bash` or `sd --init zsh`) so the shell function can `cd` in the current shell.
 
 ## Development
 

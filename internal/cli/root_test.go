@@ -88,8 +88,8 @@ func TestInitBash(t *testing.T) {
 	if code != 0 {
 		t.Fatalf("exit code = %d, want 0", code)
 	}
-	if !strings.Contains(stdout, "function cd()") {
-		t.Error("bash init script missing 'function cd()'")
+	if !strings.Contains(stdout, "function sd()") {
+		t.Error("bash init script missing 'function sd()'")
 	}
 }
 
@@ -98,8 +98,8 @@ func TestInitZsh(t *testing.T) {
 	if code != 0 {
 		t.Fatalf("exit code = %d, want 0", code)
 	}
-	if !strings.Contains(stdout, "function cd()") {
-		t.Error("zsh init script missing 'function cd()'")
+	if !strings.Contains(stdout, "function sd()") {
+		t.Error("zsh init script missing 'function sd()'")
 	}
 }
 

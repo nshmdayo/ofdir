@@ -480,24 +480,7 @@ func selectAndOutputPath(candidates []string, cfg *config.Config, prompt string)
 }
 
 func enterDirectory(path string, cfg *config.Config) error {
-	if os.Getenv("SD_PRINT_PATH") == "1" {
-		output.Path(path)
-		return nil
-	}
-
-	shell := os.Getenv("SHELL")
-	if shell == "" {
-		shell = "bash"
-	}
-
-	cmd := exec.Command(shell)
-	cmd.Dir = path
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return outputError(fmt.Sprintf("failed to start shell in %s: %v", path, err), "")
-	}
+	output.Path(path)
 	_ = recordHistory(path, cfg)
 	return nil
 }
@@ -640,7 +623,6 @@ Usage:
   sd --help          Show this help
 
 Environment:
-  SD_PRINT_PATH=1    Print resolved path only (for shell function integration)
 `)
 }
 
