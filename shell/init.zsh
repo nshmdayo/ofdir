@@ -29,7 +29,7 @@ _ofdir_complete() {
         args)
             if [[ "${words[2]}" == @* ]]; then
                 local -a bookmarks
-                bookmarks=($(ofdir --list-bookmarks 2>/dev/null))
+                bookmarks=($(command ofdir --list-bookmarks 2>/dev/null))
                 compadd -P @ -- "${bookmarks[@]#@}"
             else
                 _directories
