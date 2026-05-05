@@ -1,6 +1,6 @@
-# ofdir — smart directory
+# ofdir — Operator of Files and DIRctories
 
-A standalone smart directory CLI. Jump to directories by fuzzy name, bookmark, or history — without typing full paths.
+A CLI tool for operating files and dirctories. Jump to directories by fuzzy name, bookmark, or history — without typing full paths.
 
 ## Features
 
