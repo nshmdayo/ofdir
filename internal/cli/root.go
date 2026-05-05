@@ -24,6 +24,12 @@ import (
 
 const version = "0.1.0"
 
+var fuzzyFinderOptions = []string{"internal", "fzf", "peco"}
+
+func formatFuzzyFinderOptions(sep string) string {
+	return strings.Join(fuzzyFinderOptions, sep)
+}
+
 // Execute is the main entry point for the ofdir binary.
 func Execute() error {
 	cfg, err := config.Load()
@@ -95,7 +101,7 @@ func route(args []string, cfg *config.Config) error {
 	}
 	if first == "--set-fuzzy-finder" {
 		if len(args) < 2 {
-			return outputError("usage: ofdir --set-fuzzy-finder <internal|fzf|peco>", "")
+			return outputError(fmt.Sprintf("usage: ofdir --set-fuzzy-finder <%s>", formatFuzzyFinderOptions("|")), "")
 		}
 		return setFuzzyFinder(args[1])
 	}
@@ -516,10 +522,8 @@ func editConfig() error {
 }
 
 func setFuzzyFinder(name string) error {
-	switch name {
-	case "internal", "fzf", "peco":
-	default:
-		return outputError("invalid fuzzy finder (must be one of: internal, fzf, peco)", "")
+	if !slices.Contains(fuzzyFinderOptions, name) {
+		return outputError(fmt.Sprintf("invalid fuzzy finder (must be one of: %s)", formatFuzzyFinderOptions(", ")), "")
 	}
 
 	cfgFile := config.ConfigFile()
@@ -642,7 +646,7 @@ func writeDefaultConfig(path string) error {
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return err
 	}
-	const defaultTOML = `[search]
+	defaultTOML := fmt.Sprintf(`[search]
 max_depth        = 5
 global_root      = "~"
 exclude_patterns = ["node_modules", ".git", "dist", ".cache"]
@@ -653,15 +657,15 @@ sort        = "frecency"   # frecency | time | alpha
 
 [ui]
 color        = true
-fuzzy_finder = "internal"  # fzf | peco | internal
-`
+fuzzy_finder = "internal"  # %s
+`, formatFuzzyFinderOptions(" | "))
 	return os.WriteFile(path, []byte(defaultTOML), 0o644)
 }
 
 // ---- help ----
 
 func printHelp() {
-	fmt.Fprint(os.Stderr, `ofdir - smart directory CLI
+	fmt.Fprintf(os.Stderr, `ofdir - smart directory CLI
 
 Usage:
   ofdir [query]         Fuzzy search in current directory and resolve destination path
@@ -678,13 +682,13 @@ Usage:
   ofdir -s              Show stack
   ofdir --clear-history Delete all history
   ofdir --config        Edit config file
-  ofdir --set-fuzzy-finder <internal|fzf|peco>
+  ofdir --set-fuzzy-finder <%s>
                       Set fuzzy finder in config
   ofdir --version       Show version
   ofdir --help          Show this help
 
 Environment:
-`)
+`, formatFuzzyFinderOptions("|"))
 }
 
 // ---- error helpers ----
