@@ -1,4 +1,4 @@
-module github.com/nshmdayo/sd
+module github.com/nshmdayo/ofdir
 
 go 1.26
 

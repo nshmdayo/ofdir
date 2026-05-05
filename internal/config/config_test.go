@@ -5,13 +5,13 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/nshmdayo/sd/internal/config"
+	"github.com/nshmdayo/ofdir/internal/config"
 )
 
 func TestDefaults(t *testing.T) {
 	// No config file, no env vars → defaults apply.
 	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
-	t.Setenv("SMART_CD_MAX_DEPTH", "")
+	t.Setenv("OFDIR_MAX_DEPTH", "")
 	t.Setenv("NO_COLOR", "")
 
 	cfg, err := config.Load()
@@ -37,7 +37,7 @@ func TestLoadFromFile(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", dir)
 
-	cfgDir := filepath.Join(dir, "smart-cd")
+	cfgDir := filepath.Join(dir, "ofdir")
 	if err := os.MkdirAll(cfgDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -81,7 +81,7 @@ color = false
 
 func TestEnvOverride(t *testing.T) {
 	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
-	t.Setenv("SMART_CD_MAX_DEPTH", "3")
+	t.Setenv("OFDIR_MAX_DEPTH", "3")
 
 	cfg, err := config.Load()
 	if err != nil {
@@ -111,16 +111,16 @@ func TestXDGPaths(t *testing.T) {
 	t.Setenv("XDG_CONFIG_HOME", cfgHome)
 	t.Setenv("XDG_DATA_HOME", dataHome)
 
-	if got, want := config.ConfigFile(), filepath.Join(cfgHome, "smart-cd", "config.toml"); got != want {
+	if got, want := config.ConfigFile(), filepath.Join(cfgHome, "ofdir", "config.toml"); got != want {
 		t.Errorf("ConfigFile() = %q, want %q", got, want)
 	}
-	if got, want := config.BookmarksFile(), filepath.Join(cfgHome, "smart-cd", "bookmarks.json"); got != want {
+	if got, want := config.BookmarksFile(), filepath.Join(cfgHome, "ofdir", "bookmarks.json"); got != want {
 		t.Errorf("BookmarksFile() = %q, want %q", got, want)
 	}
-	if got, want := config.HistoryDB(), filepath.Join(dataHome, "smart-cd", "history.db"); got != want {
+	if got, want := config.HistoryDB(), filepath.Join(dataHome, "ofdir", "history.db"); got != want {
 		t.Errorf("HistoryDB() = %q, want %q", got, want)
 	}
-	if got, want := config.StackFile(), filepath.Join(dataHome, "smart-cd", "stack"); got != want {
+	if got, want := config.StackFile(), filepath.Join(dataHome, "ofdir", "stack"); got != want {
 		t.Errorf("StackFile() = %q, want %q", got, want)
 	}
 }

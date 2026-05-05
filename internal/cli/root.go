@@ -10,19 +10,19 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/nshmdayo/sd/internal/bookmark"
-	"github.com/nshmdayo/sd/internal/config"
-	"github.com/nshmdayo/sd/internal/fuzzy"
-	"github.com/nshmdayo/sd/internal/history"
-	"github.com/nshmdayo/sd/internal/output"
-	"github.com/nshmdayo/sd/internal/pathutil"
-	"github.com/nshmdayo/sd/internal/selector"
-	"github.com/nshmdayo/sd/internal/stack"
+	"github.com/nshmdayo/ofdir/internal/bookmark"
+	"github.com/nshmdayo/ofdir/internal/config"
+	"github.com/nshmdayo/ofdir/internal/fuzzy"
+	"github.com/nshmdayo/ofdir/internal/history"
+	"github.com/nshmdayo/ofdir/internal/output"
+	"github.com/nshmdayo/ofdir/internal/pathutil"
+	"github.com/nshmdayo/ofdir/internal/selector"
+	"github.com/nshmdayo/ofdir/internal/stack"
 )
 
 const version = "0.1.0"
 
-// Execute is the main entry point for the sd binary.
+// Execute is the main entry point for the ofdir binary.
 func Execute() error {
 	cfg, err := config.Load()
 	if err != nil {
@@ -53,7 +53,7 @@ func route(args []string, cfg *config.Config) error {
 
 	// --- version / help ---
 	if first == "--version" || first == "-v" {
-		fmt.Fprintf(os.Stderr, "sd version %s\n", version)
+		fmt.Fprintf(os.Stderr, "ofdir version %s\n", version)
 		return nil
 	}
 	if first == "--help" || first == "-h" {
@@ -64,7 +64,7 @@ func route(args []string, cfg *config.Config) error {
 	// --- shell init script ---
 	if first == "--init" {
 		if len(args) < 2 {
-			return outputError("usage: sd --init <bash|zsh>", "")
+			return outputError("usage: ofdir --init <bash|zsh>", "")
 		}
 		return PrintInitScript(args[1])
 	}
@@ -72,7 +72,7 @@ func route(args []string, cfg *config.Config) error {
 	// --- record history (called from shell wrapper) ---
 	if first == "--record" {
 		if len(args) < 2 {
-			return outputError("usage: sd --record <path>", "")
+			return outputError("usage: ofdir --record <path>", "")
 		}
 		return recordHistory(args[1], cfg)
 	}
@@ -117,7 +117,7 @@ func route(args []string, cfg *config.Config) error {
 		// -d <name>: delete bookmark
 		if suffix == "d" {
 			if len(args) < 2 {
-				return outputError("usage: sd -d <name>", "run 'cd -l' to list available bookmarks")
+				return outputError("usage: ofdir -d <name>", "run 'ofdir -l' to list available bookmarks")
 			}
 			return bookmarkDelete(args[1], cfg)
 		}
@@ -132,14 +132,14 @@ func route(args []string, cfg *config.Config) error {
 		// -g <query>: global fuzzy search
 		if suffix == "g" {
 			if len(args) < 2 {
-				return outputError("usage: sd -g <query>", "")
+				return outputError("usage: ofdir -g <query>", "")
 			}
 			return fuzzyGlobal(args[1], cfg)
 		}
 		// -p <path>: stack push
 		if suffix == "p" {
 			if len(args) < 2 {
-				return outputError("usage: sd -p <path>", "")
+				return outputError("usage: ofdir -p <path>", "")
 			}
 			return stackPush(args[1], cfg)
 		}
@@ -175,12 +175,12 @@ func bookmarkJump(name string, cfg *config.Config) error {
 	bm, err := store.Find(name)
 	if err != nil {
 		output.Errorf("bookmark %q not found", name)
-		output.Hintf("run 'cd -l' to list available bookmarks")
+		output.Hintf("run 'ofdir -l' to list available bookmarks")
 		return exitCodeError(1)
 	}
 	if !pathutil.Exists(bm.Path) {
 		output.Errorf("path no longer exists: %s", bm.Path)
-		output.Hintf("run 'cd -d %s' to remove this bookmark", name)
+		output.Hintf("run 'ofdir -d %s' to remove this bookmark", name)
 		return exitCodeError(1)
 	}
 	return enterDirectory(bm.Path, cfg)
@@ -218,7 +218,7 @@ func bookmarkDelete(name string, cfg *config.Config) error {
 	}
 	if err := store.Delete(name); err != nil {
 		output.Errorf("bookmark %q not found", name)
-		output.Hintf("run 'cd -l' to list available bookmarks")
+		output.Hintf("run 'ofdir -l' to list available bookmarks")
 		return exitCodeError(1)
 	}
 	if err := store.Save(bmFile); err != nil {
@@ -480,24 +480,7 @@ func selectAndOutputPath(candidates []string, cfg *config.Config, prompt string)
 }
 
 func enterDirectory(path string, cfg *config.Config) error {
-	if os.Getenv("SD_PRINT_PATH") == "1" {
-		output.Path(path)
-		return nil
-	}
-
-	shell := os.Getenv("SHELL")
-	if shell == "" {
-		shell = "bash"
-	}
-
-	cmd := exec.Command(shell)
-	cmd.Dir = path
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return outputError(fmt.Sprintf("failed to start shell in %s: %v", path, err), "")
-	}
+	output.Path(path)
 	_ = recordHistory(path, cfg)
 	return nil
 }
@@ -619,28 +602,27 @@ fuzzy_finder = "fzf"       # fzf | peco | internal
 // ---- help ----
 
 func printHelp() {
-	fmt.Fprint(os.Stderr, `sd - smart directory CLI
+	fmt.Fprint(os.Stderr, `ofdir - smart directory CLI
 
 Usage:
-  sd [query]         Fuzzy search in current directory and resolve destination path
-  sd @<name>         Jump to bookmark
-  sd -N              Jump to history entry N (e.g. sd -1)
-  sd -H              Browse history interactively
-  sd -a [name]       Add current directory as bookmark
-  sd -d <name>       Delete bookmark
-  sd -l              List bookmarks
-  sd -e              Edit bookmarks file
-  sd -g <query>      Global fuzzy search (from home)
-  sd -p <path>       Push path onto stack and jump to it
-  sd --              Pop from stack (go back)
-  sd -s              Show stack
-  sd --clear-history Delete all history
-  sd --config        Edit config file
-  sd --version       Show version
-  sd --help          Show this help
+  ofdir [query]         Fuzzy search in current directory and resolve destination path
+  ofdir @<name>         Jump to bookmark
+  ofdir -N              Jump to history entry N (e.g. ofdir -1)
+  ofdir -H              Browse history interactively
+  ofdir -a [name]       Add current directory as bookmark
+  ofdir -d <name>       Delete bookmark
+  ofdir -l              List bookmarks
+  ofdir -e              Edit bookmarks file
+  ofdir -g <query>      Global fuzzy search (from home)
+  ofdir -p <path>       Push path onto stack and jump to it
+  ofdir --              Pop from stack (go back)
+  ofdir -s              Show stack
+  ofdir --clear-history Delete all history
+  ofdir --config        Edit config file
+  ofdir --version       Show version
+  ofdir --help          Show this help
 
 Environment:
-  SD_PRINT_PATH=1    Print resolved path only (for shell function integration)
 `)
 }
 

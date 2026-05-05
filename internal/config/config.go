@@ -48,12 +48,12 @@ func defaults() *Config {
 	}
 }
 
-// ConfigDir returns the smart-cd config directory (XDG_CONFIG_HOME/smart-cd).
+// ConfigDir returns the ofdir config directory (XDG_CONFIG_HOME/ofdir).
 func ConfigDir() string {
 	return appDir("XDG_CONFIG_HOME", filepath.Join(".config"))
 }
 
-// DataDir returns the smart-cd data directory (XDG_DATA_HOME/smart-cd).
+// DataDir returns the ofdir data directory (XDG_DATA_HOME/ofdir).
 func DataDir() string {
 	return appDir("XDG_DATA_HOME", filepath.Join(".local", "share"))
 }
@@ -64,7 +64,7 @@ func appDir(envVar, fallback string) string {
 		home, _ := os.UserHomeDir()
 		base = filepath.Join(home, fallback)
 	}
-	return filepath.Join(base, "smart-cd")
+	return filepath.Join(base, "ofdir")
 }
 
 // ConfigFile returns the path to config.toml.
@@ -103,7 +103,7 @@ func Load() (*Config, error) {
 }
 
 func applyEnv(cfg *Config) {
-	if v := os.Getenv("SMART_CD_MAX_DEPTH"); v != "" {
+	if v := os.Getenv("OFDIR_MAX_DEPTH"); v != "" {
 		if n, err := strconv.Atoi(v); err == nil {
 			cfg.Search.MaxDepth = n
 		}
