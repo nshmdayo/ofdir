@@ -307,6 +307,9 @@ color = true
 	if cfg.History.Sort != "frecency" {
 		t.Fatalf("Sort = %q, want frecency", cfg.History.Sort)
 	}
+	if cfg.UI.FuzzyFinder != "fzf" {
+		t.Fatalf("FuzzyFinder = %q, want fzf", cfg.UI.FuzzyFinder)
+	}
 }
 
 func TestStackPushPop(t *testing.T) {

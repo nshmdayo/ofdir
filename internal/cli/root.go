@@ -539,8 +539,24 @@ func setFuzzyFinder(name string) error {
 	if err := toml.NewEncoder(&b).Encode(cfg); err != nil {
 		return outputError(fmt.Sprintf("failed to encode config: %v", err), "")
 	}
-	if err := os.WriteFile(cfgFile, b.Bytes(), 0o644); err != nil {
-		return outputError(fmt.Sprintf("failed to write config: %v", err), "")
+	tmpFile := cfgFile + ".tmp"
+	f, err := os.OpenFile(tmpFile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o644)
+	if err != nil {
+		return outputError(fmt.Sprintf("failed to create temp config: %v", err), "")
+	}
+	if _, err := f.Write(b.Bytes()); err != nil {
+		f.Close()
+		return outputError(fmt.Sprintf("failed to write temp config: %v", err), "")
+	}
+	if err := f.Sync(); err != nil {
+		f.Close()
+		return outputError(fmt.Sprintf("failed to sync temp config: %v", err), "")
+	}
+	if err := f.Close(); err != nil {
+		return outputError(fmt.Sprintf("failed to close temp config: %v", err), "")
+	}
+	if err := os.Rename(tmpFile, cfgFile); err != nil {
+		return outputError(fmt.Sprintf("failed to replace config: %v", err), "")
 	}
 	output.Successf("fuzzy_finder set to %q", name)
 	return nil
