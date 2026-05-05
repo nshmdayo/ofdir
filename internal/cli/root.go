@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"os"
@@ -10,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/BurntSushi/toml"
 	"github.com/nshmdayo/ofdir/internal/bookmark"
 	"github.com/nshmdayo/ofdir/internal/config"
 	"github.com/nshmdayo/ofdir/internal/fuzzy"
@@ -22,8 +24,22 @@ import (
 
 const version = "0.1.0"
 
+var fuzzyFinderOptions = []string{"internal", "fzf", "peco"}
+
+func formatFuzzyFinderOptions(sep string) string {
+	return strings.Join(fuzzyFinderOptions, sep)
+}
+
 // Execute is the main entry point for the ofdir binary.
 func Execute() error {
+	args := os.Args[1:]
+	if len(args) > 0 && args[0] == "--set-fuzzy-finder" {
+		if len(args) < 2 {
+			return outputError(fmt.Sprintf("usage: ofdir --set-fuzzy-finder <%s>", formatFuzzyFinderOptions("|")), "")
+		}
+		return setFuzzyFinder(args[1])
+	}
+
 	cfg, err := config.Load()
 	if err != nil {
 		output.Errorf("failed to load config: %v", err)
@@ -31,7 +47,6 @@ func Execute() error {
 	}
 	output.SetColor(cfg.UI.Color)
 
-	args := os.Args[1:]
 	return route(args, cfg)
 }
 
@@ -90,6 +105,12 @@ func route(args []string, cfg *config.Config) error {
 	// --- config edit ---
 	if first == "--config" {
 		return editConfig()
+	}
+	if first == "--set-fuzzy-finder" {
+		if len(args) < 2 {
+			return outputError(fmt.Sprintf("usage: ofdir --set-fuzzy-finder <%s>", formatFuzzyFinderOptions("|")), "")
+		}
+		return setFuzzyFinder(args[1])
 	}
 
 	// --- bookmark jump: @name ---
@@ -507,6 +528,56 @@ func editConfig() error {
 	return openWithEditor(cfgFile)
 }
 
+func setFuzzyFinder(name string) error {
+	if !slices.Contains(fuzzyFinderOptions, name) {
+		return outputError(fmt.Sprintf("invalid fuzzy finder (must be one of: %s)", formatFuzzyFinderOptions(", ")), "")
+	}
+
+	cfgFile := config.ConfigFile()
+	if _, err := os.Stat(cfgFile); errors.Is(err, os.ErrNotExist) {
+		if err := writeDefaultConfig(cfgFile); err != nil {
+			return outputError(fmt.Sprintf("failed to create config: %v", err), "")
+		}
+	}
+
+	cfg := config.Defaults()
+	if _, err := toml.DecodeFile(cfgFile, cfg); err != nil {
+		// If existing config is malformed, recover by writing defaults + requested value.
+		output.Infof("config is malformed, rewriting with defaults: %v", err)
+	}
+	cfg.UI.FuzzyFinder = name
+
+	var b bytes.Buffer
+	if err := toml.NewEncoder(&b).Encode(cfg); err != nil {
+		return outputError(fmt.Sprintf("failed to encode config: %v", err), "")
+	}
+	tmpFile := cfgFile + ".tmp"
+	f, err := os.OpenFile(tmpFile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o644)
+	if err != nil {
+		return outputError(fmt.Sprintf("failed to create temp config: %v", err), "")
+	}
+	if _, err := f.Write(b.Bytes()); err != nil {
+		if closeErr := f.Close(); closeErr != nil {
+			return outputError(fmt.Sprintf("failed to close temp config after write error: %v", closeErr), "")
+		}
+		return outputError(fmt.Sprintf("failed to write temp config: %v", err), "")
+	}
+	if err := f.Sync(); err != nil {
+		if closeErr := f.Close(); closeErr != nil {
+			return outputError(fmt.Sprintf("failed to close temp config after sync error: %v", closeErr), "")
+		}
+		return outputError(fmt.Sprintf("failed to sync temp config: %v", err), "")
+	}
+	if err := f.Close(); err != nil {
+		return outputError(fmt.Sprintf("failed to close temp config: %v", err), "")
+	}
+	if err := os.Rename(tmpFile, cfgFile); err != nil {
+		return outputError(fmt.Sprintf("failed to replace config: %v", err), "")
+	}
+	output.Successf("fuzzy_finder set to %q", name)
+	return nil
+}
+
 func parseShellWords(input string) ([]string, error) {
 	var (
 		parts   []string
@@ -583,7 +654,7 @@ func writeDefaultConfig(path string) error {
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return err
 	}
-	const defaultTOML = `[search]
+	defaultTOML := fmt.Sprintf(`[search]
 max_depth        = 5
 global_root      = "~"
 exclude_patterns = ["node_modules", ".git", "dist", ".cache"]
@@ -594,15 +665,15 @@ sort        = "frecency"   # frecency | time | alpha
 
 [ui]
 color        = true
-fuzzy_finder = "fzf"       # fzf | peco | internal
-`
+fuzzy_finder = "internal"  # %s
+`, formatFuzzyFinderOptions(" | "))
 	return os.WriteFile(path, []byte(defaultTOML), 0o644)
 }
 
 // ---- help ----
 
 func printHelp() {
-	fmt.Fprint(os.Stderr, `ofdir - smart directory CLI
+	fmt.Fprintf(os.Stderr, `ofdir - smart directory CLI
 
 Usage:
   ofdir [query]         Fuzzy search in current directory and resolve destination path
@@ -619,11 +690,13 @@ Usage:
   ofdir -s              Show stack
   ofdir --clear-history Delete all history
   ofdir --config        Edit config file
+  ofdir --set-fuzzy-finder <%s>
+                      Set fuzzy finder in config
   ofdir --version       Show version
   ofdir --help          Show this help
 
 Environment:
-`)
+`, formatFuzzyFinderOptions("|"))
 }
 
 // ---- error helpers ----

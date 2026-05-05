@@ -25,8 +25,8 @@ func TestDefaults(t *testing.T) {
 	if cfg.History.MaxEntries != 1000 {
 		t.Errorf("MaxEntries = %d, want 1000", cfg.History.MaxEntries)
 	}
-	if cfg.UI.FuzzyFinder != "fzf" {
-		t.Errorf("FuzzyFinder = %q, want fzf", cfg.UI.FuzzyFinder)
+	if cfg.UI.FuzzyFinder != "internal" {
+		t.Errorf("FuzzyFinder = %q, want internal", cfg.UI.FuzzyFinder)
 	}
 	if !cfg.UI.Color {
 		t.Error("Color should default to true")
