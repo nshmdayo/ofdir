@@ -545,11 +545,15 @@ func setFuzzyFinder(name string) error {
 		return outputError(fmt.Sprintf("failed to create temp config: %v", err), "")
 	}
 	if _, err := f.Write(b.Bytes()); err != nil {
-		f.Close()
+		if closeErr := f.Close(); closeErr != nil {
+			return outputError(fmt.Sprintf("failed to close temp config after write error: %v", closeErr), "")
+		}
 		return outputError(fmt.Sprintf("failed to write temp config: %v", err), "")
 	}
 	if err := f.Sync(); err != nil {
-		f.Close()
+		if closeErr := f.Close(); closeErr != nil {
+			return outputError(fmt.Sprintf("failed to close temp config after sync error: %v", closeErr), "")
+		}
 		return outputError(fmt.Sprintf("failed to sync temp config: %v", err), "")
 	}
 	if err := f.Close(); err != nil {
