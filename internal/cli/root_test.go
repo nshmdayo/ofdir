@@ -266,6 +266,31 @@ func TestSetFuzzyFinder_Invalid(t *testing.T) {
 	}
 }
 
+func TestSetFuzzyFinder_WorksWithMalformedConfig(t *testing.T) {
+	tmp := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", tmp)
+	t.Setenv("XDG_DATA_HOME", tmp)
+	t.Setenv("OFDIR_PRINT_PATH", "1")
+	origStderr := os.Stderr
+	os.Stderr, _ = os.Open(os.DevNull)
+	t.Cleanup(func() { os.Stderr = origStderr })
+
+	cfgDir := filepath.Join(tmp, "ofdir")
+	if err := os.MkdirAll(cfgDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(cfgDir, "config.toml"), []byte("not-valid-toml"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	origArgs := os.Args
+	t.Cleanup(func() { os.Args = origArgs })
+	os.Args = []string{"ofdir", "--set-fuzzy-finder", "internal"}
+	if err := cli.Execute(); err != nil {
+		t.Fatalf("--set-fuzzy-finder should recover malformed config, got: %v", err)
+	}
+}
+
 func TestSetFuzzyFinder_PreservesDefaultsForPartialConfig(t *testing.T) {
 	tmp := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tmp)

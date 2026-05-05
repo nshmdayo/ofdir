@@ -32,6 +32,14 @@ func formatFuzzyFinderOptions(sep string) string {
 
 // Execute is the main entry point for the ofdir binary.
 func Execute() error {
+	args := os.Args[1:]
+	if len(args) > 0 && args[0] == "--set-fuzzy-finder" {
+		if len(args) < 2 {
+			return outputError(fmt.Sprintf("usage: ofdir --set-fuzzy-finder <%s>", formatFuzzyFinderOptions("|")), "")
+		}
+		return setFuzzyFinder(args[1])
+	}
+
 	cfg, err := config.Load()
 	if err != nil {
 		output.Errorf("failed to load config: %v", err)
@@ -39,7 +47,6 @@ func Execute() error {
 	}
 	output.SetColor(cfg.UI.Color)
 
-	args := os.Args[1:]
 	return route(args, cfg)
 }
 
@@ -535,7 +542,8 @@ func setFuzzyFinder(name string) error {
 
 	cfg := config.Defaults()
 	if _, err := toml.DecodeFile(cfgFile, cfg); err != nil {
-		return outputError(fmt.Sprintf("failed to read config: %v", err), "")
+		// If existing config is malformed, recover by writing defaults + requested value.
+		output.Infof("config is malformed, rewriting with defaults: %v", err)
 	}
 	cfg.UI.FuzzyFinder = name
 
