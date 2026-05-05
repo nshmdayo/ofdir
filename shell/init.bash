@@ -26,7 +26,7 @@ _ofdir_completion() {
     local cur="${COMP_WORDS[COMP_CWORD]}"
     if [[ "$cur" == @* ]]; then
         local names
-        names=$(ofdir --list-bookmarks 2>/dev/null)
+        names=$(command ofdir --list-bookmarks 2>/dev/null)
         COMPREPLY=($(compgen -W "$names" -- "$cur"))
     else
         # Fall back to directory completion
