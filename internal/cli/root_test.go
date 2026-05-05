@@ -233,6 +233,39 @@ func TestClearHistory(t *testing.T) {
 	}
 }
 
+func TestSetFuzzyFinder(t *testing.T) {
+	tmp := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", tmp)
+	t.Setenv("XDG_DATA_HOME", tmp)
+	t.Setenv("OFDIR_PRINT_PATH", "1")
+	origStderr := os.Stderr
+	os.Stderr, _ = os.Open(os.DevNull)
+	t.Cleanup(func() { os.Stderr = origStderr })
+
+	origArgs := os.Args
+	t.Cleanup(func() { os.Args = origArgs })
+
+	os.Args = []string{"ofdir", "--set-fuzzy-finder", "peco"}
+	if err := cli.Execute(); err != nil {
+		t.Fatalf("--set-fuzzy-finder failed: %v", err)
+	}
+
+	cfg, err := config.Load()
+	if err != nil {
+		t.Fatalf("config.Load() failed: %v", err)
+	}
+	if cfg.UI.FuzzyFinder != "peco" {
+		t.Fatalf("FuzzyFinder = %q, want %q", cfg.UI.FuzzyFinder, "peco")
+	}
+}
+
+func TestSetFuzzyFinder_Invalid(t *testing.T) {
+	_, code := runScd(t, "--set-fuzzy-finder", "invalid")
+	if code == 0 {
+		t.Fatal("expected non-zero exit for invalid fuzzy finder")
+	}
+}
+
 func TestStackPushPop(t *testing.T) {
 	tmp := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tmp)

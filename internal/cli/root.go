@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"os"
@@ -10,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/BurntSushi/toml"
 	"github.com/nshmdayo/ofdir/internal/bookmark"
 	"github.com/nshmdayo/ofdir/internal/config"
 	"github.com/nshmdayo/ofdir/internal/fuzzy"
@@ -90,6 +92,12 @@ func route(args []string, cfg *config.Config) error {
 	// --- config edit ---
 	if first == "--config" {
 		return editConfig()
+	}
+	if first == "--set-fuzzy-finder" {
+		if len(args) < 2 {
+			return outputError("usage: ofdir --set-fuzzy-finder <internal|fzf|peco>", "")
+		}
+		return setFuzzyFinder(args[1])
 	}
 
 	// --- bookmark jump: @name ---
@@ -507,6 +515,37 @@ func editConfig() error {
 	return openWithEditor(cfgFile)
 }
 
+func setFuzzyFinder(name string) error {
+	switch name {
+	case "internal", "fzf", "peco":
+	default:
+		return outputError("invalid fuzzy finder (must be one of: internal, fzf, peco)", "")
+	}
+
+	cfgFile := config.ConfigFile()
+	if _, err := os.Stat(cfgFile); errors.Is(err, os.ErrNotExist) {
+		if err := writeDefaultConfig(cfgFile); err != nil {
+			return outputError(fmt.Sprintf("failed to create config: %v", err), "")
+		}
+	}
+
+	cfg := config.Config{}
+	if _, err := toml.DecodeFile(cfgFile, &cfg); err != nil {
+		return outputError(fmt.Sprintf("failed to read config: %v", err), "")
+	}
+	cfg.UI.FuzzyFinder = name
+
+	var b bytes.Buffer
+	if err := toml.NewEncoder(&b).Encode(cfg); err != nil {
+		return outputError(fmt.Sprintf("failed to encode config: %v", err), "")
+	}
+	if err := os.WriteFile(cfgFile, b.Bytes(), 0o644); err != nil {
+		return outputError(fmt.Sprintf("failed to write config: %v", err), "")
+	}
+	output.Successf("fuzzy_finder set to %q", name)
+	return nil
+}
+
 func parseShellWords(input string) ([]string, error) {
 	var (
 		parts   []string
@@ -594,7 +633,7 @@ sort        = "frecency"   # frecency | time | alpha
 
 [ui]
 color        = true
-fuzzy_finder = "fzf"       # fzf | peco | internal
+fuzzy_finder = "internal"  # fzf | peco | internal
 `
 	return os.WriteFile(path, []byte(defaultTOML), 0o644)
 }
@@ -619,6 +658,8 @@ Usage:
   ofdir -s              Show stack
   ofdir --clear-history Delete all history
   ofdir --config        Edit config file
+  ofdir --set-fuzzy-finder <internal|fzf|peco>
+                      Set fuzzy finder in config
   ofdir --version       Show version
   ofdir --help          Show this help
 

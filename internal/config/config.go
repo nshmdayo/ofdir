@@ -43,7 +43,7 @@ func defaults() *Config {
 		},
 		UI: UIConfig{
 			Color:       true,
-			FuzzyFinder: "fzf",
+			FuzzyFinder: "internal",
 		},
 	}
 }
