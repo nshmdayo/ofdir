@@ -140,7 +140,7 @@ Go supports cross-platform builds, so this project defaults to **non-containeriz
 make test    # run all tests with race detector
 make bench   # run benchmarks
 make build   # build bin/ofdir
-make lint    # run static analysis
+make lint    # run golangci-lint static analysis
 ```
 
 ## Requirements
@@ -148,6 +148,7 @@ make lint    # run static analysis
 - Go 1.24+
 - bash 4.0+ or zsh 5.0+
 - macOS 12+ or Linux (Ubuntu 20.04+)
+- [golangci-lint](https://golangci-lint.run/welcome/install/)
 - [fzf](https://github.com/junegunn/fzf) (optional, recommended)
 
 ## License
