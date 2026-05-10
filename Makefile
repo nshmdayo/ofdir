@@ -2,7 +2,7 @@
 
 build: ## Build the opfd binary
 	mkdir -p bin
-	go build -o bin/opfd ./cmd/ofdir
+	go build -o bin/opfd ./cmd/opfd
 
 test: ## Run tests
 	go test ./... -race -count=1

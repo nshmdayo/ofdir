@@ -12,14 +12,14 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
-	"github.com/nshmdayo/ofdir/internal/bookmark"
-	"github.com/nshmdayo/ofdir/internal/config"
-	"github.com/nshmdayo/ofdir/internal/fuzzy"
-	"github.com/nshmdayo/ofdir/internal/history"
-	"github.com/nshmdayo/ofdir/internal/output"
-	"github.com/nshmdayo/ofdir/internal/pathutil"
-	"github.com/nshmdayo/ofdir/internal/selector"
-	"github.com/nshmdayo/ofdir/internal/stack"
+	"github.com/nshmdayo/opfd/internal/bookmark"
+	"github.com/nshmdayo/opfd/internal/config"
+	"github.com/nshmdayo/opfd/internal/fuzzy"
+	"github.com/nshmdayo/opfd/internal/history"
+	"github.com/nshmdayo/opfd/internal/output"
+	"github.com/nshmdayo/opfd/internal/pathutil"
+	"github.com/nshmdayo/opfd/internal/selector"
+	"github.com/nshmdayo/opfd/internal/stack"
 )
 
 const version = "0.1.0"

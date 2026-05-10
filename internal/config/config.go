@@ -53,12 +53,12 @@ func Defaults() *Config {
 	return defaults()
 }
 
-// ConfigDir returns the ofdir config directory (XDG_CONFIG_HOME/ofdir).
+// ConfigDir returns the opfd config directory (XDG_CONFIG_HOME/opfd).
 func ConfigDir() string {
 	return appDir("XDG_CONFIG_HOME", filepath.Join(".config"))
 }
 
-// DataDir returns the ofdir data directory (XDG_DATA_HOME/ofdir).
+// DataDir returns the opfd data directory (XDG_DATA_HOME/opfd).
 func DataDir() string {
 	return appDir("XDG_DATA_HOME", filepath.Join(".local", "share"))
 }
@@ -69,7 +69,7 @@ func appDir(envVar, fallback string) string {
 		home, _ := os.UserHomeDir()
 		base = filepath.Join(home, fallback)
 	}
-	return filepath.Join(base, "ofdir")
+	return filepath.Join(base, "opfd")
 }
 
 // ConfigFile returns the path to config.toml.
@@ -108,7 +108,7 @@ func Load() (*Config, error) {
 }
 
 func applyEnv(cfg *Config) {
-	if v := os.Getenv("OFDIR_MAX_DEPTH"); v != "" {
+	if v := os.Getenv("OPFD_MAX_DEPTH"); v != "" {
 		if n, err := strconv.Atoi(v); err == nil {
 			cfg.Search.MaxDepth = n
 		}
