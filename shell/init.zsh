@@ -1,35 +1,35 @@
-# ofdir zsh integration
-# Usage: eval "$(ofdir --init zsh)"
+# opfd zsh integration
+# Usage: eval "$(opfd --init zsh)"
 
-function ofdir() {
+function opfd() {
     # No arguments: go home
     if [ $# -eq 0 ]; then
         builtin cd "$HOME"
         return $?
     fi
 
-    # Capture ofdir output; UI and errors go to the terminal via /dev/tty
+    # Capture opfd output; UI and errors go to the terminal via /dev/tty
     local target
-    target=$(command ofdir "$@" 2>/dev/tty)
+    target=$(command opfd "$@" 2>/dev/tty)
     local exit_code=$?
 
     if [ $exit_code -eq 0 ] && [ -n "$target" ]; then
         if builtin cd "$target"; then
-            command ofdir --record "$target" &>/dev/null &
+            command opfd --record "$target" &>/dev/null &
         fi
     fi
     return $exit_code
 }
 
 # zsh completion for bookmark names
-_ofdir_complete() {
+_opfd_complete() {
     local state
     _arguments '*:: :->args'
     case $state in
         args)
             if [[ "${words[2]}" == @* ]]; then
                 local -a bookmarks
-                bookmarks=($(command ofdir --list-bookmarks 2>/dev/null))
+                bookmarks=($(command opfd --list-bookmarks 2>/dev/null))
                 compadd -P @ -- "${bookmarks[@]#@}"
             else
                 _directories
@@ -37,4 +37,4 @@ _ofdir_complete() {
             ;;
     esac
 }
-compdef _ofdir_complete ofdir
+compdef _opfd_complete opfd

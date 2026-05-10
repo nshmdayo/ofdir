@@ -1,8 +1,8 @@
 .PHONY: build test bench lint release clean
 
-build: ## Build the ofdir binary
+build: ## Build the opfd binary
 	mkdir -p bin
-	go build -o bin/ofdir ./cmd/ofdir
+	go build -o bin/opfd ./cmd/ofdir
 
 test: ## Run tests
 	go test ./... -race -count=1

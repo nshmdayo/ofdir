@@ -30,12 +30,12 @@ func formatFuzzyFinderOptions(sep string) string {
 	return strings.Join(fuzzyFinderOptions, sep)
 }
 
-// Execute is the main entry point for the ofdir binary.
+// Execute is the main entry point for the opfd binary.
 func Execute() error {
 	args := os.Args[1:]
 	if len(args) > 0 && args[0] == "--set-fuzzy-finder" {
 		if len(args) < 2 {
-			return outputError(fmt.Sprintf("usage: ofdir --set-fuzzy-finder <%s>", formatFuzzyFinderOptions("|")), "")
+			return outputError(fmt.Sprintf("usage: opfd --set-fuzzy-finder <%s>", formatFuzzyFinderOptions("|")), "")
 		}
 		return setFuzzyFinder(args[1])
 	}
@@ -68,7 +68,7 @@ func route(args []string, cfg *config.Config) error {
 
 	// --- version / help ---
 	if first == "--version" || first == "-v" {
-		fmt.Fprintf(os.Stderr, "ofdir version %s\n", version)
+		fmt.Fprintf(os.Stderr, "opfd version %s\n", version)
 		return nil
 	}
 	if first == "--help" || first == "-h" {
@@ -79,7 +79,7 @@ func route(args []string, cfg *config.Config) error {
 	// --- shell init script ---
 	if first == "--init" {
 		if len(args) < 2 {
-			return outputError("usage: ofdir --init <bash|zsh>", "")
+			return outputError("usage: opfd --init <bash|zsh>", "")
 		}
 		return PrintInitScript(args[1])
 	}
@@ -87,7 +87,7 @@ func route(args []string, cfg *config.Config) error {
 	// --- record history (called from shell wrapper) ---
 	if first == "--record" {
 		if len(args) < 2 {
-			return outputError("usage: ofdir --record <path>", "")
+			return outputError("usage: opfd --record <path>", "")
 		}
 		return recordHistory(args[1], cfg)
 	}
@@ -108,7 +108,7 @@ func route(args []string, cfg *config.Config) error {
 	}
 	if first == "--set-fuzzy-finder" {
 		if len(args) < 2 {
-			return outputError(fmt.Sprintf("usage: ofdir --set-fuzzy-finder <%s>", formatFuzzyFinderOptions("|")), "")
+			return outputError(fmt.Sprintf("usage: opfd --set-fuzzy-finder <%s>", formatFuzzyFinderOptions("|")), "")
 		}
 		return setFuzzyFinder(args[1])
 	}
@@ -138,7 +138,7 @@ func route(args []string, cfg *config.Config) error {
 		// -d <name>: delete bookmark
 		if suffix == "d" {
 			if len(args) < 2 {
-				return outputError("usage: ofdir -d <name>", "run 'ofdir -l' to list available bookmarks")
+				return outputError("usage: opfd -d <name>", "run 'opfd -l' to list available bookmarks")
 			}
 			return bookmarkDelete(args[1], cfg)
 		}
@@ -153,14 +153,14 @@ func route(args []string, cfg *config.Config) error {
 		// -g <query>: global fuzzy search
 		if suffix == "g" {
 			if len(args) < 2 {
-				return outputError("usage: ofdir -g <query>", "")
+				return outputError("usage: opfd -g <query>", "")
 			}
 			return fuzzyGlobal(args[1], cfg)
 		}
 		// -p <path>: stack push
 		if suffix == "p" {
 			if len(args) < 2 {
-				return outputError("usage: ofdir -p <path>", "")
+				return outputError("usage: opfd -p <path>", "")
 			}
 			return stackPush(args[1], cfg)
 		}
@@ -196,12 +196,12 @@ func bookmarkJump(name string, cfg *config.Config) error {
 	bm, err := store.Find(name)
 	if err != nil {
 		output.Errorf("bookmark %q not found", name)
-		output.Hintf("run 'ofdir -l' to list available bookmarks")
+		output.Hintf("run 'opfd -l' to list available bookmarks")
 		return exitCodeError(1)
 	}
 	if !pathutil.Exists(bm.Path) {
 		output.Errorf("path no longer exists: %s", bm.Path)
-		output.Hintf("run 'ofdir -d %s' to remove this bookmark", name)
+		output.Hintf("run 'opfd -d %s' to remove this bookmark", name)
 		return exitCodeError(1)
 	}
 	return enterDirectory(bm.Path, cfg)
@@ -239,7 +239,7 @@ func bookmarkDelete(name string, cfg *config.Config) error {
 	}
 	if err := store.Delete(name); err != nil {
 		output.Errorf("bookmark %q not found", name)
-		output.Hintf("run 'ofdir -l' to list available bookmarks")
+		output.Hintf("run 'opfd -l' to list available bookmarks")
 		return exitCodeError(1)
 	}
 	if err := store.Save(bmFile); err != nil {
@@ -673,27 +673,27 @@ fuzzy_finder = "internal"  # %s
 // ---- help ----
 
 func printHelp() {
-	fmt.Fprintf(os.Stderr, `ofdir - smart directory CLI
+	fmt.Fprintf(os.Stderr, `opfd - smart directory CLI
 
 Usage:
-  ofdir [query]         Fuzzy search in current directory and resolve destination path
-  ofdir @<name>         Jump to bookmark
-  ofdir -N              Jump to history entry N (e.g. ofdir -1)
-  ofdir -H              Browse history interactively
-  ofdir -a [name]       Add current directory as bookmark
-  ofdir -d <name>       Delete bookmark
-  ofdir -l              List bookmarks
-  ofdir -e              Edit bookmarks file
-  ofdir -g <query>      Global fuzzy search (from home)
-  ofdir -p <path>       Push path onto stack and jump to it
-  ofdir --              Pop from stack (go back)
-  ofdir -s              Show stack
-  ofdir --clear-history Delete all history
-  ofdir --config        Edit config file
-  ofdir --set-fuzzy-finder <%s>
+  opfd [query]         Fuzzy search in current directory and resolve destination path
+  opfd @<name>         Jump to bookmark
+  opfd -N              Jump to history entry N (e.g. opfd -1)
+  opfd -H              Browse history interactively
+  opfd -a [name]       Add current directory as bookmark
+  opfd -d <name>       Delete bookmark
+  opfd -l              List bookmarks
+  opfd -e              Edit bookmarks file
+  opfd -g <query>      Global fuzzy search (from home)
+  opfd -p <path>       Push path onto stack and jump to it
+  opfd --              Pop from stack (go back)
+  opfd -s              Show stack
+  opfd --clear-history Delete all history
+  opfd --config        Edit config file
+  opfd --set-fuzzy-finder <%s>
                       Set fuzzy finder in config
-  ofdir --version       Show version
-  ofdir --help          Show this help
+  opfd --version       Show version
+  opfd --help          Show this help
 
 Environment:
 `, formatFuzzyFinderOptions("|"))

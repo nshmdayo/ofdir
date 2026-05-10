@@ -42,7 +42,7 @@ func runScd(t *testing.T, args ...string) (stdout string, exitCode int) {
 
 	// Inject args.
 	origArgs := os.Args
-	os.Args = append([]string{"ofdir"}, args...)
+	os.Args = append([]string{"opfd"}, args...)
 	t.Cleanup(func() { os.Args = origArgs })
 
 	err := cli.Execute()
@@ -88,8 +88,8 @@ func TestInitBash(t *testing.T) {
 	if code != 0 {
 		t.Fatalf("exit code = %d, want 0", code)
 	}
-	if !strings.Contains(stdout, "function ofdir()") {
-		t.Error("bash init script missing 'function ofdir()'")
+	if !strings.Contains(stdout, "function opfd()") {
+		t.Error("bash init script missing 'function opfd()'")
 	}
 }
 
@@ -98,8 +98,8 @@ func TestInitZsh(t *testing.T) {
 	if code != 0 {
 		t.Fatalf("exit code = %d, want 0", code)
 	}
-	if !strings.Contains(stdout, "function ofdir()") {
-		t.Error("zsh init script missing 'function ofdir()'")
+	if !strings.Contains(stdout, "function opfd()") {
+		t.Error("zsh init script missing 'function opfd()'")
 	}
 }
 
@@ -128,11 +128,11 @@ func TestBookmarkAddListDelete(t *testing.T) {
 	origArgs := os.Args
 	t.Cleanup(func() { os.Args = origArgs })
 
-	os.Args = []string{"ofdir", "-a", "testbm"}
+	os.Args = []string{"opfd", "-a", "testbm"}
 	_ = cli.Execute()
 
 	// -l: list should contain our bookmark
-	os.Args = []string{"ofdir", "--list-bookmarks"}
+	os.Args = []string{"opfd", "--list-bookmarks"}
 	origStdout := os.Stdout
 	r, w, _ := os.Pipe()
 	os.Stdout = w
@@ -147,7 +147,7 @@ func TestBookmarkAddListDelete(t *testing.T) {
 	}
 
 	// @testbm: jump should return targetDir
-	os.Args = []string{"ofdir", "@testbm"}
+	os.Args = []string{"opfd", "@testbm"}
 	r, w, _ = os.Pipe()
 	os.Stdout = w
 	err := cli.Execute()
@@ -168,11 +168,11 @@ func TestBookmarkAddListDelete(t *testing.T) {
 	}
 
 	// -d: delete
-	os.Args = []string{"ofdir", "-d", "testbm"}
+	os.Args = []string{"opfd", "-d", "testbm"}
 	_ = cli.Execute()
 
 	// After delete, jump should fail
-	os.Args = []string{"ofdir", "@testbm"}
+	os.Args = []string{"opfd", "@testbm"}
 	r, w, _ = os.Pipe()
 	os.Stdout = w
 	err = cli.Execute()
@@ -211,7 +211,7 @@ func TestBookmarkJump_PathGone(t *testing.T) {
 
 	origArgs := os.Args
 	t.Cleanup(func() { os.Args = origArgs })
-	os.Args = []string{"ofdir", "@gone"}
+	os.Args = []string{"opfd", "@gone"}
 	err := cli.Execute()
 	if err == nil || cli.ExitCode(err) == 0 {
 		t.Error("expected non-zero exit when bookmark path no longer exists")
@@ -245,7 +245,7 @@ func TestSetFuzzyFinder(t *testing.T) {
 	origArgs := os.Args
 	t.Cleanup(func() { os.Args = origArgs })
 
-	os.Args = []string{"ofdir", "--set-fuzzy-finder", "peco"}
+	os.Args = []string{"opfd", "--set-fuzzy-finder", "peco"}
 	if err := cli.Execute(); err != nil {
 		t.Fatalf("--set-fuzzy-finder failed: %v", err)
 	}
@@ -275,7 +275,7 @@ func TestSetFuzzyFinder_WorksWithMalformedConfig(t *testing.T) {
 	os.Stderr, _ = os.Open(os.DevNull)
 	t.Cleanup(func() { os.Stderr = origStderr })
 
-	cfgDir := filepath.Join(tmp, "ofdir")
+	cfgDir := filepath.Join(tmp, "opfd")
 	if err := os.MkdirAll(cfgDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -285,7 +285,7 @@ func TestSetFuzzyFinder_WorksWithMalformedConfig(t *testing.T) {
 
 	origArgs := os.Args
 	t.Cleanup(func() { os.Args = origArgs })
-	os.Args = []string{"ofdir", "--set-fuzzy-finder", "internal"}
+	os.Args = []string{"opfd", "--set-fuzzy-finder", "internal"}
 	if err := cli.Execute(); err != nil {
 		t.Fatalf("--set-fuzzy-finder should recover malformed config, got: %v", err)
 	}
@@ -300,7 +300,7 @@ func TestSetFuzzyFinder_PreservesDefaultsForPartialConfig(t *testing.T) {
 	os.Stderr, _ = os.Open(os.DevNull)
 	t.Cleanup(func() { os.Stderr = origStderr })
 
-	cfgDir := filepath.Join(tmp, "ofdir")
+	cfgDir := filepath.Join(tmp, "opfd")
 	if err := os.MkdirAll(cfgDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -314,7 +314,7 @@ color = true
 
 	origArgs := os.Args
 	t.Cleanup(func() { os.Args = origArgs })
-	os.Args = []string{"ofdir", "--set-fuzzy-finder", "fzf"}
+	os.Args = []string{"opfd", "--set-fuzzy-finder", "fzf"}
 	if err := cli.Execute(); err != nil {
 		t.Fatalf("--set-fuzzy-finder failed: %v", err)
 	}
@@ -353,7 +353,7 @@ func TestStackPushPop(t *testing.T) {
 	origStdout := os.Stdout
 
 	// Push
-	os.Args = []string{"ofdir", "-p", dir}
+	os.Args = []string{"opfd", "-p", dir}
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 	if err := cli.Execute(); err != nil {
@@ -368,7 +368,7 @@ func TestStackPushPop(t *testing.T) {
 	}
 
 	// Pop
-	os.Args = []string{"ofdir", "--"}
+	os.Args = []string{"opfd", "--"}
 	r, w, _ = os.Pipe()
 	os.Stdout = w
 	if err := cli.Execute(); err != nil {
@@ -413,7 +413,7 @@ func TestFuzzySearch_Found(t *testing.T) {
 	os.Stderr, _ = os.Open(os.DevNull)
 	t.Cleanup(func() { os.Stderr = origStderr })
 
-	os.Args = []string{"ofdir", "myproject"}
+	os.Args = []string{"opfd", "myproject"}
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 	err := cli.Execute()
