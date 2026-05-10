@@ -112,7 +112,7 @@ Environment variable overrides:
 
 | Variable            | Effect                        |
 |---------------------|-------------------------------|
-| `OFDIR_MAX_DEPTH`| Override `search.max_depth`   |
+| `OPFD_MAX_DEPTH`| Override `search.max_depth`   |
 | `NO_COLOR`          | Disable color output          |
 
 ## Data files

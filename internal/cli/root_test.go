@@ -22,8 +22,8 @@ func runScd(t *testing.T, args ...string) (stdout string, exitCode int) {
 	tmp := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tmp)
 	t.Setenv("XDG_DATA_HOME", tmp)
-	t.Setenv("OFDIR_PRINT_PATH", "1")
-	t.Setenv("OFDIR_PRINT_PATH", "1")
+	t.Setenv("OPFD_PRINT_PATH", "1")
+	t.Setenv("OPFD_PRINT_PATH", "1")
 
 	// Capture stdout.
 	origStdout := os.Stdout
@@ -114,7 +114,7 @@ func TestBookmarkAddListDelete(t *testing.T) {
 	tmp := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tmp)
 	t.Setenv("XDG_DATA_HOME", tmp)
-	t.Setenv("OFDIR_PRINT_PATH", "1")
+	t.Setenv("OPFD_PRINT_PATH", "1")
 	origStderr := os.Stderr
 	os.Stderr, _ = os.Open(os.DevNull)
 	t.Cleanup(func() { os.Stderr = origStderr })
@@ -194,7 +194,7 @@ func TestBookmarkJump_PathGone(t *testing.T) {
 	tmp := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tmp)
 	t.Setenv("XDG_DATA_HOME", tmp)
-	t.Setenv("OFDIR_PRINT_PATH", "1")
+	t.Setenv("OPFD_PRINT_PATH", "1")
 	origStderr := os.Stderr
 	os.Stderr, _ = os.Open(os.DevNull)
 	t.Cleanup(func() { os.Stderr = origStderr })
@@ -237,7 +237,7 @@ func TestSetFuzzyFinder(t *testing.T) {
 	tmp := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tmp)
 	t.Setenv("XDG_DATA_HOME", tmp)
-	t.Setenv("OFDIR_PRINT_PATH", "1")
+	t.Setenv("OPFD_PRINT_PATH", "1")
 	origStderr := os.Stderr
 	os.Stderr, _ = os.Open(os.DevNull)
 	t.Cleanup(func() { os.Stderr = origStderr })
@@ -270,7 +270,7 @@ func TestSetFuzzyFinder_WorksWithMalformedConfig(t *testing.T) {
 	tmp := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tmp)
 	t.Setenv("XDG_DATA_HOME", tmp)
-	t.Setenv("OFDIR_PRINT_PATH", "1")
+	t.Setenv("OPFD_PRINT_PATH", "1")
 	origStderr := os.Stderr
 	os.Stderr, _ = os.Open(os.DevNull)
 	t.Cleanup(func() { os.Stderr = origStderr })
@@ -295,7 +295,7 @@ func TestSetFuzzyFinder_PreservesDefaultsForPartialConfig(t *testing.T) {
 	tmp := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tmp)
 	t.Setenv("XDG_DATA_HOME", tmp)
-	t.Setenv("OFDIR_PRINT_PATH", "1")
+	t.Setenv("OPFD_PRINT_PATH", "1")
 	origStderr := os.Stderr
 	os.Stderr, _ = os.Open(os.DevNull)
 	t.Cleanup(func() { os.Stderr = origStderr })
@@ -341,7 +341,7 @@ func TestStackPushPop(t *testing.T) {
 	tmp := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tmp)
 	t.Setenv("XDG_DATA_HOME", tmp)
-	t.Setenv("OFDIR_PRINT_PATH", "1")
+	t.Setenv("OPFD_PRINT_PATH", "1")
 	origStderr := os.Stderr
 	os.Stderr, _ = os.Open(os.DevNull)
 	t.Cleanup(func() { os.Stderr = origStderr })
@@ -394,7 +394,7 @@ func TestFuzzySearch_Found(t *testing.T) {
 	tmp := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tmp)
 	t.Setenv("XDG_DATA_HOME", tmp)
-	t.Setenv("OFDIR_PRINT_PATH", "1")
+	t.Setenv("OPFD_PRINT_PATH", "1")
 
 	// Create a subdirectory to find.
 	searchRoot := t.TempDir()

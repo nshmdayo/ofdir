@@ -108,7 +108,7 @@ func Load() (*Config, error) {
 }
 
 func applyEnv(cfg *Config) {
-	if v := os.Getenv("OFDIR_MAX_DEPTH"); v != "" {
+	if v := os.Getenv("OPFD_MAX_DEPTH"); v != "" {
 		if n, err := strconv.Atoi(v); err == nil {
 			cfg.Search.MaxDepth = n
 		}

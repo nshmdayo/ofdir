@@ -11,7 +11,7 @@ import (
 func TestDefaults(t *testing.T) {
 	// No config file, no env vars → defaults apply.
 	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
-	t.Setenv("OFDIR_MAX_DEPTH", "")
+	t.Setenv("OPFD_MAX_DEPTH", "")
 	t.Setenv("NO_COLOR", "")
 
 	cfg, err := config.Load()
@@ -81,7 +81,7 @@ color = false
 
 func TestEnvOverride(t *testing.T) {
 	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
-	t.Setenv("OFDIR_MAX_DEPTH", "3")
+	t.Setenv("OPFD_MAX_DEPTH", "3")
 
 	cfg, err := config.Load()
 	if err != nil {
