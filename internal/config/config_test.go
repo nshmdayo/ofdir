@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/nshmdayo/ofdir/internal/config"
+	"github.com/nshmdayo/opfd/internal/config"
 )
 
 func TestDefaults(t *testing.T) {
@@ -37,7 +37,7 @@ func TestLoadFromFile(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", dir)
 
-	cfgDir := filepath.Join(dir, "ofdir")
+	cfgDir := filepath.Join(dir, "opfd")
 	if err := os.MkdirAll(cfgDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -111,16 +111,16 @@ func TestXDGPaths(t *testing.T) {
 	t.Setenv("XDG_CONFIG_HOME", cfgHome)
 	t.Setenv("XDG_DATA_HOME", dataHome)
 
-	if got, want := config.ConfigFile(), filepath.Join(cfgHome, "ofdir", "config.toml"); got != want {
+	if got, want := config.ConfigFile(), filepath.Join(cfgHome, "opfd", "config.toml"); got != want {
 		t.Errorf("ConfigFile() = %q, want %q", got, want)
 	}
-	if got, want := config.BookmarksFile(), filepath.Join(cfgHome, "ofdir", "bookmarks.json"); got != want {
+	if got, want := config.BookmarksFile(), filepath.Join(cfgHome, "opfd", "bookmarks.json"); got != want {
 		t.Errorf("BookmarksFile() = %q, want %q", got, want)
 	}
-	if got, want := config.HistoryDB(), filepath.Join(dataHome, "ofdir", "history.db"); got != want {
+	if got, want := config.HistoryDB(), filepath.Join(dataHome, "opfd", "history.db"); got != want {
 		t.Errorf("HistoryDB() = %q, want %q", got, want)
 	}
-	if got, want := config.StackFile(), filepath.Join(dataHome, "ofdir", "stack"); got != want {
+	if got, want := config.StackFile(), filepath.Join(dataHome, "opfd", "stack"); got != want {
 		t.Errorf("StackFile() = %q, want %q", got, want)
 	}
 }

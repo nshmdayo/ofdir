@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/nshmdayo/ofdir/internal/stack"
+	"github.com/nshmdayo/opfd/internal/stack"
 )
 
 func TestPushPop(t *testing.T) {

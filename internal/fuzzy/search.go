@@ -8,7 +8,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/nshmdayo/ofdir/internal/config"
+	"github.com/nshmdayo/opfd/internal/config"
 )
 
 // SearchResult holds a candidate directory and its score.

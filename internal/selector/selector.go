@@ -4,7 +4,7 @@ import (
 	"errors"
 	"os/exec"
 
-	"github.com/nshmdayo/ofdir/internal/config"
+	"github.com/nshmdayo/opfd/internal/config"
 )
 
 // ErrCancelled is returned when the user cancels the selection (e.g. Ctrl+C).

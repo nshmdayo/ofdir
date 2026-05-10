@@ -1,4 +1,4 @@
-module github.com/nshmdayo/ofdir
+module github.com/nshmdayo/opfd
 
 go 1.26
 
