@@ -134,10 +134,13 @@ Use the provided shell initialization (`ofdir --init bash` or `ofdir --init zsh`
 
 ## Development
 
+Go supports cross-platform builds, so this project defaults to **non-containerized** local builds.
+
 ```bash
 make test    # run all tests with race detector
 make bench   # run benchmarks
 make build   # build bin/ofdir
+make lint    # run static analysis
 ```
 
 ## Requirements
